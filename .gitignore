@@ -8,3 +8,5 @@ dingo_ws/.catkin_tools/*
 dingo_ws/.vscode/*
 .vscode/*
 dingo_ws/src/.vscode/*
+images/
+*.zip

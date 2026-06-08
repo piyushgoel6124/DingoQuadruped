@@ -1,0 +1,36 @@
+{
+    "offsets": [
+        2,
+        15,
+        -14,
+        60,
+        -7,
+        0,
+        7,
+        3,
+        0,
+        5,
+        4,
+        0
+    ],
+    "inversions": [
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true
+    ],
+    "coupling_factors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ]
+}

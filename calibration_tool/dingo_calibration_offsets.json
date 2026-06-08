@@ -1,0 +1,30 @@
+{
+    "offsets": [
+        15.0,
+        3.0,
+        -3.0,
+        38.0,
+        0.0,
+        0.0,
+        -9.0,
+        3.0,
+        0.0,
+        18.0,
+        7.0,
+        0.0
+    ],
+    "inversions": [
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true
+    ]
+}

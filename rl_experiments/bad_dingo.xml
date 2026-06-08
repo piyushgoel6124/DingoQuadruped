@@ -1,0 +1,31 @@
+
+        <mujoco model="dingo">
+            <compiler meshdir="d:/vscode/DingoQuadruped/dingo_ws/src/dingo_description/meshes" discardvisual="false" fusestatic="false" autolimits="true"/>
+            <option timestep="0.005" iterations="50" solver="PGS" gravity="0 0 -9.81"/>
+            
+            <worldbody>
+                <light directional="true" diffuse=".8 .8 .8" specular=".2 .2 .2" pos="0 0 5" dir="0 0 -1"/>
+                <geom name="floor" type="plane" size="100 100 .1" rgba=".8 .9 .8 1" friction="1 0.005 0.0001"/>
+                
+                <body name="base" pos="0 0 0.3">
+                    <freejoint name="root"/>
+                    <include file="dingo_clean.urdf"/>
+                </body>
+            </worldbody>
+            
+            <actuator>
+                <motor joint="FL_theta1" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="FL_theta2" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="FL_theta3" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="FR_theta1" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="FR_theta2" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="FR_theta3" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="RL_theta1" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="RL_theta2" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="RL_theta3" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="RR_theta1" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="RR_theta2" ctrlrange="-10 10" ctrllimited="true"/>
+                <motor joint="RR_theta3" ctrlrange="-10 10" ctrllimited="true"/>
+            </actuator>
+        </mujoco>
+        
