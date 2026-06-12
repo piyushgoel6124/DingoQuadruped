@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dingo Quadruped - Inverse Kinematics Math Resolver & Visualizer</title>
+    <!-- Modern typography from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0b0b0d;
+            --bg-panel: #131316;
+            --bg-control: #1a1a1f;
+            --border-color: #26262f;
+            --text-primary: #f4f4f7;
+            --text-secondary: #a1a1aa;
+            --accent-blue: #38bdf8;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-pink: #ec4899;
+            --accent-red: #ef4444;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebars */
+        .sidebar {
+            width: 380px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar.right {
+            width: 420px;
+            border-right: none;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* Central Visualizer */
+        .visualizer-container {
+            flex: 1;
+            position: relative;
+            background-color: var(--bg-base);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #canvas3d {
+            width: 100%;
+            flex: 1;
+            outline: none;
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            color: var(--accent-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 14px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .control-label span.value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .input-slider {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-control);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .input-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .input-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        button {
+            background-color: var(--bg-control);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            border-color: var(--accent-blue);
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        button.active {
+            background-color: var(--accent-blue);
+            color: var(--bg-base);
+            border-color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        .dropdown {
+            width: 100%;
+            background-color: var(--bg-control);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        /* Math Step Cards */
+        .math-step {
+            background-color: var(--bg-control);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s ease;
+        }
+
+        .math-step:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .step-badge {
+            background-color: rgba(56, 189, 248, 0.1);
+            color: var(--accent-blue);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .step-formula {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .step-result {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent-green);
+        }
+
+        .step-result.out-of-bounds {
+            color: var(--accent-red);
+        }
+
+        /* Legend & Info overlays on visualizer */
+        .overlay-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(19, 19, 22, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .overlay-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+
+        .color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* 3D view controls */
+        .view-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Warnings */
+        .warning-card {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #fca5a5;
+            display: none;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+    <!-- Three.js and OrbitControls via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Dingo Quadruped - Inverse Kinematics Resolver</h1>
+        <div class="subtitle">Interactive 3D Geometry and Algebraic Steps</div>
+    </header>
+
+    <div class="main-container">
+        <!-- LEFT PANEL: Parameters & Controls -->
+        <div class="sidebar">
+            <!-- Leg Selection -->
+            <div class="section">
+                <div class="section-title">Leg Setup</div>
+                <div class="control-group">
+                    <label class="control-label">Select Active Leg</label>
+                    <select class="dropdown" id="legSelector">
+                        <option value="0">Front Left (Left Leg Model)</option>
+                        <option value="1">Front Right (Right Leg Model)</option>
+                        <option value="2">Rear Left (Left Leg Model)</option>
+                        <option value="3">Rear Right (Right Leg Model)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Kinematics Parameters -->
+            <div class="section">
+                <div class="section-title">Link Dimensions (m)</div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>L1 (Hip Width)</span>
+                        <span class="value" id="valL1">0.0516</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderL1" min="0.02" max="0.10" step="0.001" value="0.05162">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>L2 (Thigh Length)</span>
+                        <span class="value" id="valL2">0.1300</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderL2" min="0.05" max="0.25" step="0.001" value="0.130">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>L3 (Calf Length)</span>
+                        <span class="value" id="valL3">0.1381</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderL3" min="0.05" max="0.25" step="0.001" value="0.13814">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>phi (Hip Angle Offset)</span>
+                        <span class="value" id="valPhi">73.9°</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderPhi" min="30" max="120" step="0.5" value="73.917">
+                </div>
+            </div>
+
+            <!-- Target Foot Coordinates -->
+            <div class="section">
+                <div class="section-title">Target Foot Coordinates (m)</div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>X (Forward / Backward)</span>
+                        <span class="value" id="valX">0.000</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderX" min="-0.15" max="0.15" step="0.001" value="0.0">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Y (Lateral Outward/Inward)</span>
+                        <span class="value" id="valY">0.000</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderY" min="-0.15" max="0.15" step="0.001" value="0.0">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Z (Vertical Height)</span>
+                        <span class="value" id="valZ">-0.180</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderZ" min="-0.30" max="-0.05" step="0.001" value="-0.180">
+                </div>
+                <div class="btn-group">
+                    <button id="btnResetStance">Reset Stance</button>
+                    <button id="btnOrbitDemo">Walk Demo</button>
+                </div>
+                <div id="reachWarning" class="warning-card">
+                    Target is outside the physical workspace boundary! Values have been clamped to prevent math errors.
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER PANEL: 3D Visualization -->
+        <div class="visualizer-container">
+            <canvas id="canvas3d"></canvas>
+            
+            <!-- Information Overlay -->
+            <div class="overlay-panel">
+                <div class="overlay-item">
+                    <div class="color-dot" style="background-color: var(--accent-pink);"></div>
+                    <span>Shoulder Origin (0,0,0)</span>
+                </div>
+                <div class="overlay-item">
+                    <div class="color-dot" style="background-color: var(--accent-orange);"></div>
+                    <span>Hip Joint (L1 End)</span>
+                </div>
+                <div class="overlay-item">
+                    <div class="color-dot" style="background-color: var(--accent-blue);"></div>
+                    <span>Knee Joint (L2 End)</span>
+                </div>
+                <div class="overlay-item">
+                    <div class="color-dot" style="background-color: var(--accent-green);"></div>
+                    <span>Foot End-Effector</span>
+                </div>
+            </div>
+
+            <!-- Quick View Controls -->
+            <div class="view-controls">
+                <button onclick="setCameraView('side')">Side (XZ)</button>
+                <button onclick="setCameraView('front')">Front (YZ)</button>
+                <button onclick="setCameraView('top')">Top (XY)</button>
+                <button onclick="setCameraView('iso')">Isometric</button>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Step-by-Step Math Resolver -->
+        <div class="sidebar right">
+            <div class="section" style="border-bottom: none;">
+                <div class="section-title">Algebraic Math Steps</div>
+
+                <!-- Step 1: Input Setup -->
+                <div class="math-step">
+                    <div class="step-header">
+                        <span>Step 1: Input Pre-processing</span>
+                        <span class="step-badge">TRANSFORM</span>
+                    </div>
+                    <div class="step-formula">is_right = leg_index in [1, 3]</div>
+                    <div class="step-result" id="resStep1">is_right = false, [x, y, z] = [0.000, 0.000, -0.180]</div>
+                </div>
+
+                <!-- Step 2: R1 Rotation -->
+                <div class="math-step">
+                    <div class="step-header">
+                        <span>Step 2: Coordinate Rotation R1</span>
+                        <span class="step-badge">ROTATION</span>
+                    </div>
+                    <div class="step-formula">R1 = pi/2 - phi; r_foot' = RotX(-R1) * r_foot</div>
+                    <div class="step-result" id="resStep2">R1 = 0.28 rad, [x', y', z'] = [0.000, 0.000, 0.000]</div>
+                </div>
+
+                <!-- Step 3: Solve Hip Angle (Theta 1) -->
+                <div class="math-step">
+                    <div class="step-header">
+                        <span>Step 3: Solve Hip Angle (theta_1)</span>
+                        <span class="step-badge">TRIGONOMETRY</span>
+                    </div>
+                    <div class="step-formula">
+                        len_A = sqrt(y'^2 + z'^2)<br>
+                        a_2 = asin(sin(phi)*L1/len_A)<br>
+                        theta_1 = point_to_rad(y', z') + pi - a_2 - phi
+                    </div>
+                    <div class="step-result" id="resStep3">len_A = 0.000m, theta_1 = 0.000 rad (0.0°)</div>
+                </div>
+
+                <!-- Step 4: Translate & RotX to 2D Leg Plane -->
+                <div class="math-step">
+                    <div class="step-header">
+                        <span>Step 4: Rotate to X-Z' Leg Plane</span>
+                        <span class="step-badge">ROTATION</span>
+                    </div>
+                    <div class="step-formula">
+                        offset = [0, L1*cos(t1), L1*sin(t1)]<br>
+                        R2 = theta_1 + phi - pi/2<br>
+                        j4_vec_ = RotX(-R2) * (r_foot' - offset)
+                    </div>
+                    <div class="step-result" id="resStep4">[x_, y_, z_] = [0.000, 0.000, 0.000]</div>
+                </div>
+
+                <!-- Step 5: Solve Thigh & Knee (Theta 2, 3) -->
+                <div class="math-step">
+                    <div class="step-header">
+                        <span>Step 5: Solve Thigh & Knee 2D geometry</span>
+                        <span class="step-badge">COSINE RULE</span>
+                    </div>
+                    <div class="step-formula">
+                        len_B = sqrt(x_^2 + z_^2)<br>
+                        b_2 = acos((L2^2 + len_B^2 - L3^2) / (2*L2*len_B))<br>
+                        b_3 = acos((L2^2 + L3^2 - len_B^2) / (2*L2*L3))
+                    </div>
+                    <div class="step-result" id="resStep5">len_B = 0.000m, theta_2 = 0.00°, theta_3 = 0.00°</div>
+                </div>
+
+                <!-- Step 6: Post-processing Offset Correction -->
+                <div class="math-step">
+                    <div class="step-header">
+                        <span>Step 6: Offset Corrector</span>
+                        <span class="step-badge">CALIBRATION</span>
+                    </div>
+                    <div class="step-formula">
+                        theta_2' = theta_2 - pi<br>
+                        theta_3' = theta_3 - pi/2
+                    </div>
+                    <div class="step-result" id="resStep6">Final: [0.00°, 0.00°, 0.00°]</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Globals & Parameters ---
+        let scene, camera, renderer, controls;
+        let shoulderOrigin, hipJoint, kneeJoint, footFoot;
+        let lineHip, lineThigh, lineCalf, targetPointMarker;
+        let activeLegIndex = 0;
+        let demoActive = false;
+        let demoTime = 0;
+
+        // Default Config variables (matching Dingo config)
+        let config = {
+            L1: 0.05162,
+            L2: 0.130,
+            L3: 0.13814,
+            phi: 73.917 * Math.PI / 180.0
+        };
+
+        // Inputs
+        let targetX = 0.0;
+        let targetY = 0.0;
+        let targetZ = -0.180;
+
+        // --- Math Functions ---
+        function point_to_rad(p1, p2) {
+            let theta = Math.atan2(p2, p1);
+            return (theta + 2 * Math.PI) % (2 * Math.PI);
+        }
+
+        function RotMatrix3D_X(angle) {
+            const c = Math.cos(angle);
+            const s = Math.sin(angle);
+            return [
+                [1, 0, 0],
+                [0, c, -s],
+                [0, s, c]
+            ];
+        }
+
+        function multiplyMatrixVector(m, v) {
+            return [
+                m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2],
+                m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2],
+                m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2]
+            ];
+        }
+
+        function solveInverseKinematics(x, y, z, legIndex, cfg) {
+            // Determine if leg is a right or a left leg
+            const is_right = (legIndex === 1 || legIndex === 3) ? 0 : 1;
+            
+            // Flip the y axis if the foot is a right foot to make calculation correct
+            let inputY = y;
+            if (is_right) inputY = -inputY;
+
+            let r_body_foot = [x, inputY, z];
+            
+            // Step 2: Rotate the origin frame to be in-line with config.L1 for calculating theta_1
+            const R1 = Math.PI/2 - cfg.phi;
+            const rot_mtx = RotMatrix3D_X(-R1);
+            let r_body_foot_ = multiplyMatrixVector(rot_mtx, r_body_foot);
+            
+            let rx = r_body_foot_[0];
+            let ry = r_body_foot_[1];
+            let rz = r_body_foot_[2];
+
+            // Step 3: Calculate theta_1
+            let len_A = Math.sqrt(ry * ry + rz * rz);
+            let isOutOfBounds = false;
+
+            // Prevent math errors for asin range
+            let ratio = (Math.sin(cfg.phi) * cfg.L1) / len_A;
+            if (ratio > 1.0) {
+                ratio = 1.0;
+                isOutOfBounds = true;
+            } else if (ratio < -1.0) {
+                ratio = -1.0;
+                isOutOfBounds = true;
+            }
+
+            let a_1 = point_to_rad(ry, rz);
+            let a_2 = Math.asin(ratio);
+            let a_3 = Math.PI - a_2 - cfg.phi;               
+
+            let theta_1 = a_1 + a_3;
+            if (theta_1 >= 2 * Math.PI) {
+                theta_1 = theta_1 % (2 * Math.PI);
+            }
+            
+            // Step 4: Translate frame to the frame of the leg and rotate to work on 2D plane
+            let offset = [0.0, cfg.L1 * Math.cos(theta_1), cfg.L1 * Math.sin(theta_1)];
+            let translated_frame = [
+                r_body_foot_[0] - offset[0],
+                r_body_foot_[1] - offset[1],
+                r_body_foot_[2] - offset[2]
+            ];
+            
+            let R2 = theta_1 + cfg.phi - Math.PI / 2;
+            const rot_mtx2 = RotMatrix3D_X(-R2);
+            let j4_2_vec_ = multiplyMatrixVector(rot_mtx2, translated_frame);
+            
+            let rx_ = j4_2_vec_[0];
+            let ry_ = j4_2_vec_[1];
+            let rz_ = j4_2_vec_[2];
+            
+            let len_B = Math.sqrt(rx_ * rx_ + rz_ * rz_);
+            
+            // Step 5: Solve 2D Knee and Thigh angles
+            if (len_B >= (cfg.L2 + cfg.L3)) {
+                len_B = (cfg.L2 + cfg.L3) * 0.999;
+                isOutOfBounds = true;
+            }
+            if (len_B < Math.abs(cfg.L2 - cfg.L3)) {
+                len_B = Math.abs(cfg.L2 - cfg.L3) * 1.001;
+                isOutOfBounds = true;
+            }
+            
+            let b_1 = point_to_rad(rx_, rz_);  
+            let cos_b2 = (cfg.L2*cfg.L2 + len_B*len_B - cfg.L3*cfg.L3) / (2 * cfg.L2 * len_B);
+            let cos_b3 = (cfg.L2*cfg.L2 + cfg.L3*cfg.L3 - len_B*len_B) / (2 * cfg.L2 * cfg.L3);
+            
+            cos_b2 = Math.max(-1.0, Math.min(1.0, cos_b2));
+            cos_b3 = Math.max(-1.0, Math.min(1.0, cos_b3));
+
+            let b_2 = Math.acos(cos_b2); 
+            let b_3 = Math.acos(cos_b3);  
+            
+            let theta_2 = b_1 - b_2;
+            let theta_3 = Math.PI - b_3;
+
+            // Offset correctors (AngleCorrector)
+            let raw_angles = [theta_1, theta_2, theta_3];
+            let corrected = [theta_1, theta_2 - Math.PI, theta_3 - Math.PI/2];
+
+            for (let i = 0; i < 3; i++) {
+                let theta = corrected[i];
+                if (theta > 2 * Math.PI) theta = theta % (2 * Math.PI);
+                if (theta > Math.PI) theta = -(2 * Math.PI - theta);
+                if (theta < -Math.PI) theta = (2 * Math.PI + theta);
+                corrected[i] = theta;
+            }
+
+            // Calculate joint 3D positions in the robot base frame
+            // Hip Joint Position (End of L1) in rotated frame, then rotated back:
+            const rot_mtx_inv = RotMatrix3D_X(R1);
+            let hip_pos_rot = [0, cfg.L1 * Math.cos(theta_1), cfg.L1 * Math.sin(theta_1)];
+            let hip_pos = multiplyMatrixVector(rot_mtx_inv, hip_pos_rot);
+            if (is_right) hip_pos[1] = -hip_pos[1]; // Flip back for rendering
+
+            // Knee Joint (End of L2) and Foot Joint (End of L3)
+            // L2 rotates about X-axis in local plane by R2 + theta_2
+            // Let's perform forward kinematics to find joint locations
+            // In 2D plane:
+            let knee_2d = [cfg.L2 * Math.cos(theta_2), 0, cfg.L2 * Math.sin(theta_2)];
+            let foot_2d = [
+                knee_2d[0] + cfg.L3 * Math.cos(theta_2 + theta_3),
+                0,
+                knee_2d[2] + cfg.L3 * Math.sin(theta_2 + theta_3)
+            ];
+
+            // Rotate back from 2D plane to original frame:
+            const rot_mtx2_inv = RotMatrix3D_X(R2);
+            let knee_pos_rot = [
+                knee_2d[0],
+                knee_2d[1] + offset[1],
+                knee_2d[2] + offset[2]
+            ];
+            let knee_pos = multiplyMatrixVector(rot_mtx2_inv, knee_pos_rot);
+            knee_pos = multiplyMatrixVector(rot_mtx_inv, knee_pos);
+            if (is_right) knee_pos[1] = -knee_pos[1];
+
+            let foot_pos_rot = [
+                foot_2d[0],
+                foot_2d[1] + offset[1],
+                foot_2d[2] + offset[2]
+            ];
+            let foot_pos = multiplyMatrixVector(rot_mtx2_inv, foot_pos_rot);
+            foot_pos = multiplyMatrixVector(rot_mtx_inv, foot_pos);
+            if (is_right) foot_pos[1] = -foot_pos[1];
+
+            return {
+                angles: raw_angles,
+                corrected: corrected,
+                isOutOfBounds: isOutOfBounds,
+                joints: {
+                    shoulder: [0, 0, 0],
+                    hip: hip_pos,
+                    knee: knee_pos,
+                    foot: foot_pos
+                },
+                steps: {
+                    is_right: is_right,
+                    R1: R1,
+                    r_foot_rot: r_body_foot_,
+                    len_A: len_A,
+                    a_1: a_1,
+                    a_2: a_2,
+                    a_3: a_3,
+                    theta_1: theta_1,
+                    offset: offset,
+                    R2: R2,
+                    j4_2_vec_: j4_2_vec_,
+                    len_B: len_B,
+                    b_1: b_1,
+                    b_2: b_2,
+                    b_3: b_3,
+                    theta_2: theta_2,
+                    theta_3: theta_3
+                }
+            };
+        }
+
+        // --- Initialize Three.js Scene ---
+        function init3D() {
+            const container = document.getElementById('canvas3d');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b0b0d);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 10);
+            camera.position.set(0.3, 0.25, 0.4);
+
+            renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 + 0.1; // Don't go below ground
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(1, 2, 1);
+            scene.add(dirLight);
+
+            // Helpers & Grid
+            const gridHelper = new THREE.GridHelper(1.0, 20, 0x26262f, 0x1a1a1f);
+            gridHelper.position.y = -0.25; // Floor reference
+            scene.add(gridHelper);
+
+            // Origin axes helper
+            const axesHelper = new THREE.AxesHelper(0.05);
+            axesHelper.position.set(0, 0, 0);
+            scene.add(axesHelper);
+
+            // Joint Spheres
+            const createJointMarker = (color, radius = 0.008) => {
+                const geom = new THREE.SphereGeometry(radius, 16, 16);
+                const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.1 });
+                const mesh = new THREE.Mesh(geom, mat);
+                scene.add(mesh);
+                return mesh;
+            };
+
+            shoulderOrigin = createJointMarker(0xec4899, 0.006); // Pink
+            hipJoint = createJointMarker(0xf59e0b); // Orange
+            kneeJoint = createJointMarker(0x38bdf8); // Blue
+            footFoot = createJointMarker(0x10b981, 0.006); // Green
+
+            // Target marker
+            const targetGeom = new THREE.SphereGeometry(0.004, 8, 8);
+            const targetMat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true });
+            targetPointMarker = new THREE.Mesh(targetGeom, targetMat);
+            scene.add(targetPointMarker);
+
+            // Link Lines (Cylinder segments represent links)
+            const createLinkLine = (color) => {
+                const mat = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
+                const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
+                const line = new THREE.Line(geom, mat);
+                scene.add(line);
+                return line;
+            };
+
+            lineHip = createLinkLine(0xf59e0b);
+            lineThigh = createLinkLine(0x38bdf8);
+            lineCalf = createLinkLine(0x10b981);
+
+            window.addEventListener('resize', onWindowResize);
+            updateKinematics();
+            animate();
+        }
+
+        function updateLinkGeometry(line, pA, pB) {
+            const points = [
+                new THREE.Vector3(pA[0], pA[1], pA[2]),
+                new THREE.Vector3(pB[0], pB[1], pB[2])
+            ];
+            line.geometry.setFromPoints(points);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas3d');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (demoActive) {
+                demoTime += 0.03;
+                // Generate a walking path trajectory (elliptical)
+                const cx = 0.0;
+                const cy = 0.0;
+                const cz = -0.180;
+                const radiusX = 0.05;
+                const radiusZ = 0.04;
+
+                targetX = cx + radiusX * Math.cos(demoTime);
+                targetZ = cz + radiusZ * Math.sin(demoTime);
+                if (targetZ > cz) targetZ = cz; // Stance phase flat line on ground
+
+                // Update UI sliders dynamically to match demo values
+                document.getElementById('sliderX').value = targetX.toFixed(3);
+                document.getElementById('sliderZ').value = targetZ.toFixed(3);
+                document.getElementById('valX').innerText = targetX.toFixed(3);
+                document.getElementById('valZ').innerText = targetZ.toFixed(3);
+
+                updateKinematics();
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function setCameraView(view) {
+            controls.reset();
+            if (view === 'side') {
+                camera.position.set(0, 0, 0.4);
+            } else if (view === 'front') {
+                camera.position.set(0.4, 0, 0);
+            } else if (view === 'top') {
+                camera.position.set(0.001, 0.4, 0);
+            } else if (view === 'iso') {
+                camera.position.set(0.3, 0.25, 0.4);
+            }
+        }
+
+        // --- Kinematics and UI Sync ---
+        function updateKinematics() {
+            const res = solveInverseKinematics(targetX, targetY, targetZ, activeLegIndex, config);
+
+            // Update warning panel
+            const warningEl = document.getElementById('reachWarning');
+            if (res.isOutOfBounds) {
+                warningEl.style.display = 'block';
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            // Move 3D Markers
+            shoulderOrigin.position.set(...res.joints.shoulder);
+            hipJoint.position.set(...res.joints.hip);
+            kneeJoint.position.set(...res.joints.knee);
+            footFoot.position.set(...res.joints.foot);
+            targetPointMarker.position.set(targetX, targetY, targetZ);
+
+            // Update lines
+            updateLinkGeometry(lineHip, res.joints.shoulder, res.joints.hip);
+            updateLinkGeometry(lineThigh, res.joints.hip, res.joints.knee);
+            updateLinkGeometry(lineCalf, res.joints.knee, res.joints.foot);
+
+            // Render Math step values
+            const steps = res.steps;
+
+            // Step 1 Output
+            document.getElementById('resStep1').innerHTML = 
+                `is_right = ${steps.is_right === 1 ? 'true' : 'false'}, [x, y, z] = [${targetX.toFixed(3)}, ${targetY.toFixed(3)}, ${targetZ.toFixed(3)}]`;
+
+            // Step 2 Output
+            document.getElementById('resStep2').innerHTML = 
+                `R1 = ${steps.R1.toFixed(3)} rad (${(steps.R1 * 180 / Math.PI).toFixed(1)}°)<br>` +
+                `[x', y', z'] = [${steps.r_foot_rot[0].toFixed(3)}, ${steps.r_foot_rot[1].toFixed(3)}, ${steps.r_foot_rot[2].toFixed(3)}]`;
+
+            // Step 3 Output
+            document.getElementById('resStep3').innerHTML = 
+                `len_A = ${steps.len_A.toFixed(3)}m, ` +
+                `a_2 = ${steps.a_2.toFixed(3)} rad (${(steps.a_2 * 180 / Math.PI).toFixed(1)}°)<br>` +
+                `theta_1 = ${steps.theta_1.toFixed(3)} rad (${(steps.theta_1 * 180 / Math.PI).toFixed(1)}°)`;
+
+            // Step 4 Output
+            document.getElementById('resStep4').innerHTML = 
+                `R2 = ${(steps.R2 * 180 / Math.PI).toFixed(1)}°<br>` +
+                `[x_, y_, z_] = [${steps.j4_2_vec_[0].toFixed(3)}, ${steps.j4_2_vec_[1].toFixed(3)}, ${steps.j4_2_vec_[2].toFixed(3)}]`;
+
+            // Step 5 Output
+            document.getElementById('resStep5').innerHTML = 
+                `len_B = ${steps.len_B.toFixed(3)}m<br>` +
+                `theta_2 = ${steps.theta_2.toFixed(3)} rad (${(steps.theta_2 * 180 / Math.PI).toFixed(1)}°)<br>` +
+                `theta_3 = ${steps.theta_3.toFixed(3)} rad (${(steps.theta_3 * 180 / Math.PI).toFixed(1)}°)`;
+
+            // Step 6 Output
+            const finalDeg = res.corrected.map(a => (a * 180 / Math.PI).toFixed(2));
+            const colorClass = res.isOutOfBounds ? 'out-of-bounds' : '';
+            document.getElementById('resStep6').innerHTML = 
+                `<span class="${colorClass}">corrected angles:<br>` +
+                `t1 = ${finalDeg[0]}°, t2 = ${finalDeg[1]}°, t3 = ${finalDeg[2]}°</span>`;
+        }
+
+        // --- Event Listeners ---
+        function setupUIEventListeners() {
+            // Leg Selector
+            document.getElementById('legSelector').addEventListener('change', (e) => {
+                activeLegIndex = parseInt(e.target.value);
+                updateKinematics();
+            });
+
+            // Sliders links
+            document.getElementById('sliderL1').addEventListener('input', (e) => {
+                config.L1 = parseFloat(e.target.value);
+                document.getElementById('valL1').innerText = config.L1.toFixed(4);
+                updateKinematics();
+            });
+            document.getElementById('sliderL2').addEventListener('input', (e) => {
+                config.L2 = parseFloat(e.target.value);
+                document.getElementById('valL2').innerText = config.L2.toFixed(4);
+                updateKinematics();
+            });
+            document.getElementById('sliderL3').addEventListener('input', (e) => {
+                config.L3 = parseFloat(e.target.value);
+                document.getElementById('valL3').innerText = config.L3.toFixed(4);
+                updateKinematics();
+            });
+            document.getElementById('sliderPhi').addEventListener('input', (e) => {
+                const deg = parseFloat(e.target.value);
+                config.phi = deg * Math.PI / 180.0;
+                document.getElementById('valPhi').innerText = deg.toFixed(1) + '°';
+                updateKinematics();
+            });
+
+            // Sliders coordinates
+            document.getElementById('sliderX').addEventListener('input', (e) => {
+                targetX = parseFloat(e.target.value);
+                document.getElementById('valX').innerText = targetX.toFixed(3);
+                updateKinematics();
+            });
+            document.getElementById('sliderY').addEventListener('input', (e) => {
+                targetY = parseFloat(e.target.value);
+                document.getElementById('valY').innerText = targetY.toFixed(3);
+                updateKinematics();
+            });
+            document.getElementById('sliderZ').addEventListener('input', (e) => {
+                targetZ = parseFloat(e.target.value);
+                document.getElementById('valZ').innerText = targetZ.toFixed(3);
+                updateKinematics();
+            });
+
+            // Reset button
+            document.getElementById('btnResetStance').addEventListener('click', () => {
+                targetX = 0.0;
+                targetY = 0.0;
+                targetZ = -0.180;
+
+                document.getElementById('sliderX').value = "0.0";
+                document.getElementById('sliderY').value = "0.0";
+                document.getElementById('sliderZ').value = "-0.180";
+
+                document.getElementById('valX').innerText = "0.000";
+                document.getElementById('valY').innerText = "0.000";
+                document.getElementById('valZ').innerText = "-0.180";
+
+                updateKinematics();
+            });
+
+            // Demo button
+            const btnDemo = document.getElementById('btnOrbitDemo');
+            btnDemo.addEventListener('click', () => {
+                demoActive = !demoActive;
+                btnDemo.innerText = demoActive ? 'Stop Demo' : 'Walk Demo';
+                btnDemo.classList.toggle('active', demoActive);
+            });
+        }
+
+        // Initialize App
+        window.onload = () => {
+            init3D();
+            setupUIEventListeners();
+        };
+    </script>
+</body>
+</html>
