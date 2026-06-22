@@ -66,6 +66,7 @@ sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_control", "src"
 sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_utilities", "src"))
 sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_servo_interfacing", "src"))
 sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_peripheral_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_input_interfacing", "src"))
 
 # Now import the necessary modules from dingo_control
 from dingo_control.Config import Configuration, Leg_linkage
@@ -96,11 +97,99 @@ except ImportError:
     print("Warning: board or adafruit-bno055 not installed.")
     imu_available = False
 
+import select
+import termios
+import tty
+import threading
+
+pynput_available = False
 try:
     from pynput import keyboard
-except ImportError:
-    print("Error: pynput is required for keyboard control. Please run: pip install pynput")
-    sys.exit(1)
+    pynput_available = True
+except Exception:
+    # If pynput fails to import (e.g. no X server display), define fallback listener
+    class MockKeyboard:
+        class Key:
+            space = 'space'
+            esc = 'esc'
+
+        class Listener:
+            def __init__(self, on_press, on_release):
+                self.on_press = on_press
+                self.on_release = on_release
+                self.running = False
+                self.thread = None
+                self.old_settings = None
+
+            def start(self):
+                self.running = True
+                try:
+                    self.old_settings = termios.tcgetattr(sys.stdin)
+                except Exception:
+                    self.old_settings = None
+                self.thread = threading.Thread(target=self._run)
+                self.thread.daemon = True
+                self.thread.start()
+
+            def stop(self):
+                self.running = False
+                if self.old_settings:
+                    try:
+                        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
+                    except Exception:
+                        pass
+
+            def _run(self):
+                try:
+                    tty.setcbreak(sys.stdin.fileno())
+                except Exception:
+                    # In case stdin is not a tty
+                    pass
+
+                class DummyKey:
+                    def __init__(self, char=None, special=None):
+                        self.char = char
+                        self.special = special
+                    def __eq__(self, other):
+                        if self.special and other:
+                            return getattr(other, 'special', None) == self.special
+                        return False
+
+                # We keep track of the last pressed movement key to simulate release
+                last_key = None
+                last_key_time = 0.0
+
+                while self.running:
+                    try:
+                        rlist, _, _ = select.select([sys.stdin], [], [], 0.05)
+                        now = time.time()
+                        if rlist:
+                            char = sys.stdin.read(1)
+                            if char == '\x1b': # ESC
+                                self.on_press(MockKeyboard.Key.esc)
+                            elif char == ' ':
+                                self.on_press(MockKeyboard.Key.space)
+                            elif char:
+                                char_lower = char.lower()
+                                if last_key and last_key != char_lower:
+                                    self.on_release(DummyKey(char=last_key))
+                                self.on_press(DummyKey(char=char_lower))
+                                last_key = char_lower
+                                last_key_time = now
+                        else:
+                            if last_key and (now - last_key_time > 0.3):
+                                self.on_release(DummyKey(char=last_key))
+                                last_key = None
+                    except Exception:
+                        time.sleep(0.05)
+
+                if self.old_settings:
+                    try:
+                        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_settings)
+                    except Exception:
+                        pass
+
+    keyboard = MockKeyboard()
 
 import json
 
@@ -209,8 +298,8 @@ class DirectKeyboardWalk:
             euler = self.imu.euler
             if euler and all(x is not None for x in euler):
                 yaw = math.radians(360.0 - euler[0])
-                pitch = math.radians(-euler[1])
-                roll = math.radians(euler[2] - 30.0)  # Apply standard 30 deg mounting correction
+                roll = math.radians(-euler[1])
+                pitch = math.radians(euler[2])  # Apply standard 30 deg mounting correction
                 return np.array([yaw, pitch, roll])
         except Exception:
             pass

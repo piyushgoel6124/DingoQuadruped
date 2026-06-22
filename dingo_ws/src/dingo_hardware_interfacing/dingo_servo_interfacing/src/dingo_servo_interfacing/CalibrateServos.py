@@ -28,9 +28,9 @@ CALIBRATION PROCESS
             pos = calibration_pos
                                                 and,
             offsets = np.array(
-                    [[90, 90, 90, 90],
-                     [0 , 0 , 0 , 0 ],
-                     [0 , 0 , 0 , 0 ]])
+                    [[88, 0, 115, 86],
+                    [5, 0, 15, 7],
+                    [0, 0, 35, 0]])
 3. Mount upper leg and lower leg servo horn **such that a positive calibration angle will achieve the desired position**.
     So, upper leg should be slightly angled up toward the back of the robot and lower leg servo horn
     should be slightly angled down from the forward horizontal
@@ -230,6 +230,43 @@ HTML_CONTENT = """<!DOCTYPE html>
             padding: 2px 4px;
             border-radius: 4px;
         }
+        .preset-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            box-sizing: border-box;
+        }
+        .preset-label {
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        .preset-btn {
+            background-color: var(--border-color);
+            color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .preset-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -240,6 +277,21 @@ HTML_CONTENT = """<!DOCTYPE html>
 
     <div class="instructions">
         <strong>Controls:</strong> Click any joint to select it. Adjust the value using the <strong>sliders</strong> or the <strong>Left / Right Arrow keys</strong> (fine-tune by 1 degree). Move selection with <strong>Up / Down Arrow keys</strong>. Press <strong>Enter</strong> or click "Save Calibration" to write updates directly to the source code files.
+    </div>
+
+    <div class="preset-container">
+        <span class="preset-label">Stance Presets:</span>
+        <button class="preset-btn" onclick="setStance('cal')">Calibration (Cal)</button>
+        <button class="preset-btn" onclick="setStance('low')">Low</button>
+        <button class="preset-btn" onclick="setStance('mid')">Medium</button>
+        <button class="preset-btn" onclick="setStance('high')">High</button>
+        
+        <span style="flex-grow: 1;"></span>
+        
+        <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="soft-motion-checkbox" onchange="toggleSoftMotion(this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+            Use Soft Motion
+        </label>
     </div>
 
     <div class="container" id="legs-container">
@@ -255,10 +307,12 @@ HTML_CONTENT = """<!DOCTYPE html>
         const legNames = ["Front-Right (FR)", "Front-Left (FL)", "Back-Right (BR)", "Back-Left (BL)"];
         const jointNames = ["Hip", "Upper Leg", "Lower Leg"];
         let offsets = [[0,0,0,0], [0,0,0,0], [0,0,0,0]];
+        let pins = [[0,0,0,0], [0,0,0,0], [0,0,0,0]];
         let calibrationPos = [0, 0, 90];
         
         let selectedLeg = 0; // 0..3
         let selectedJoint = 0; // 0..2
+        let activeStance = 'cal';
 
         async function fetchOffsets() {
             try {
@@ -266,10 +320,67 @@ HTML_CONTENT = """<!DOCTYPE html>
                 const data = await response.json();
                 offsets = data.offsets;
                 calibrationPos = data.calibration_pos;
+                pins = data.pins || pins;
+                detectStance();
                 renderUI();
+                
+                // Fetch soft motion state
+                const smRes = await fetch('/get_soft_motion');
+                const smData = await smRes.json();
+                document.getElementById('soft-motion-checkbox').checked = smData.use_soft_motion;
             } catch (err) {
                 console.error("Failed to load offsets", err);
                 document.getElementById('status-text').innerText = "Error loading offsets.";
+            }
+        }
+
+        function detectStance() {
+            if (calibrationPos[0] === 0 && calibrationPos[1] === 25 && calibrationPos[2] === 140) activeStance = 'low';
+            else if (calibrationPos[0] === 0 && calibrationPos[1] === 42 && calibrationPos[2] === 120) activeStance = 'mid';
+            else if (calibrationPos[0] === 0 && calibrationPos[1] === 50 && calibrationPos[2] === 110) activeStance = 'high';
+            else activeStance = 'cal';
+            updateActiveStanceUI();
+        }
+
+        function updateActiveStanceUI() {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                const isMatch = btn.getAttribute('onclick').includes(`'${activeStance}'`);
+                if (isMatch) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        async function setStance(stance) {
+            try {
+                const response = await fetch('/set_stance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stance: stance })
+                });
+                const data = await response.json();
+                if (data.status === "ok") {
+                    calibrationPos = data.calibration_pos;
+                    activeStance = stance;
+                    updateActiveStanceUI();
+                    renderUI();
+                }
+            } catch (err) {
+                console.error("Failed to set stance", err);
+            }
+        }
+
+        async function toggleSoftMotion(enabled) {
+            try {
+                await fetch('/set_soft_motion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ use_soft_motion: enabled })
+                });
+            } catch (err) {
+                console.error("Failed to toggle soft motion", err);
             }
         }
 
@@ -279,7 +390,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             
             for (let legIdx = 0; legIdx < 4; legIdx++) {
                 const card = document.createElement('div');
-                card.className = `leg-card \${legIdx === selectedLeg ? 'focused' : ''}`;
+                card.className = `leg-card ${legIdx === selectedLeg ? 'focused' : ''}`;
                 
                 const title = document.createElement('div');
                 title.className = 'leg-title';
@@ -289,7 +400,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 for (let jointIdx = 0; jointIdx < 3; jointIdx++) {
                     const row = document.createElement('div');
                     const isActive = legIdx === selectedLeg && jointIdx === selectedJoint;
-                    row.className = `joint-row \${isActive ? 'active' : ''}`;
+                    row.className = `joint-row ${isActive ? 'active' : ''}`;
                     row.onclick = () => {
                         selectedLeg = legIdx;
                         selectedJoint = jointIdx;
@@ -301,13 +412,13 @@ HTML_CONTENT = """<!DOCTYPE html>
                     
                     const name = document.createElement('span');
                     name.className = 'joint-name';
-                    name.innerText = jointNames[jointIdx];
+                    name.innerText = `${jointNames[jointIdx]} (Pin ${pins[jointIdx][legIdx]})`;
                     
                     const valDisplay = document.createElement('span');
                     valDisplay.className = 'joint-values';
                     const offsetVal = offsets[jointIdx][legIdx];
                     const totalVal = offsetVal + calibrationPos[jointIdx];
-                    valDisplay.innerText = `Offset: \${offsetVal}° (Total: \${totalVal}°)`;
+                    valDisplay.innerText = `Offset: ${offsetVal}° (Total: ${totalVal}°)`;
                     
                     info.appendChild(name);
                     info.appendChild(valDisplay);
@@ -341,7 +452,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             const row = card.children[jointIdx + 1];
             const valDisplay = row.querySelector('.joint-values');
             const totalVal = val + calibrationPos[jointIdx];
-            valDisplay.innerText = `Offset: \${val}° (Total: \${totalVal}°)`;
+            valDisplay.innerText = `Offset: ${val}° (Total: ${totalVal}°)`;
             
             try {
                 const response = await fetch('/set_offset', {
@@ -422,9 +533,80 @@ HTML_CONTENT = """<!DOCTYPE html>
 """
 
 offsets = np.array(
-                    [[70, 107, 115, 64],
-                    [35, 10, 15, 22],
-                    [16, 27, 35, 14]])
+                    [[88, 0, 115, 86],
+                    [5, 0, 15, 7],
+                    [0, 0, 35, 0]])
+
+# Soft motion implementation
+import threading
+import time
+
+target_angles = [None] * 16
+current_angles = [None] * 16
+use_soft_motion = False
+
+def init_angles():
+    global target_angles, current_angles
+    for leg_idx in range(4):
+        for joint_idx in range(3):
+            val = offsets[joint_idx, leg_idx]
+            target_angle = val + calibration_pos[joint_idx]
+            
+            if leg_idx == 0: # FR
+                ch = [Dingo.front_right_hip, Dingo.front_right_upper, Dingo.front_right_lower][joint_idx]
+            elif leg_idx == 1: # FL
+                ch = [Dingo.front_left_hip, Dingo.front_left_upper, Dingo.front_left_lower][joint_idx]
+            elif leg_idx == 2: # BR
+                ch = [Dingo.back_right_hip, Dingo.back_right_upper, Dingo.back_right_lower][joint_idx]
+            elif leg_idx == 3: # BL
+                ch = [Dingo.back_left_hip, Dingo.back_left_upper, Dingo.back_left_lower][joint_idx]
+            
+            target_angles[ch] = float(target_angle)
+            current_angles[ch] = float(target_angle)
+
+def command_servo_angle(servo_pin, target_angle):
+    global target_angles, current_angles, use_soft_motion
+    target_angles[servo_pin] = float(target_angle)
+    if current_angles[servo_pin] is None:
+        current_angles[servo_pin] = float(target_angle)
+        
+    if not use_soft_motion:
+        current_angles[servo_pin] = float(target_angle)
+        try:
+            Dingo.moveAbsAngle(servo_pin, target_angle)
+        except Exception as e:
+            print(f"Error moving servo on pin {servo_pin}: {e}")
+
+def soft_motion_thread_func():
+    global current_angles, target_angles, use_soft_motion
+    while True:
+        if use_soft_motion:
+            for ch in range(16):
+                if target_angles[ch] is not None and current_angles[ch] is not None:
+                    error = target_angles[ch] - current_angles[ch]
+                    if abs(error) > 0.05:
+                        abs_err = abs(error)
+                        if abs_err > 60:
+                            step = 8.0
+                        elif abs_err > 30:
+                            step = 5.0
+                        elif abs_err > 15:
+                            step = 3.0
+                        elif abs_err > 5:
+                            step = 2.0
+                        else:
+                            step = 1.0
+                            
+                        if error > 0:
+                            current_angles[ch] = min(target_angles[ch], current_angles[ch] + step)
+                        else:
+                            current_angles[ch] = max(target_angles[ch], current_angles[ch] - step)
+                        
+                        try:
+                            Dingo.moveAbsAngle(ch, current_angles[ch])
+                        except Exception as e:
+                            pass
+        time.sleep(0.02)
 
 # Check if we should launch web server
 if "--web" in sys.argv:
@@ -453,17 +635,73 @@ if "--web" in sys.argv:
                 self.end_headers()
                 data = {
                     "offsets": offsets.tolist(),
-                    "calibration_pos": calibration_pos
+                    "calibration_pos": calibration_pos,
+                    "pins": Dingo.pins.tolist()
                 }
                 self.wfile.write(json.dumps(data).encode("utf-8"))
+            elif path == "/get_soft_motion":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"use_soft_motion": use_soft_motion}).encode("utf-8"))
             else:
                 self.send_error(404, "Not Found")
 
         def do_POST(self):
+            global calibration_pos, offsets
             parsed_url = urllib.parse.urlparse(self.path)
             path = parsed_url.path
             
-            if path == "/set_offset":
+            if path == "/set_stance":
+                content_length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(content_length)
+                params = json.loads(body.decode('utf-8'))
+                
+                stance_name = params.get("stance")
+                if stance_name in position_dict:
+                    global calibration_pos
+                    calibration_pos = position_dict[stance_name]
+                    
+                    # Move all servos to their new stance position
+                    for leg_idx in range(4):
+                        for joint_idx in range(3):
+                            val = offsets[joint_idx, leg_idx]
+                            target_angle = val + calibration_pos[joint_idx]
+                            
+                            if leg_idx == 0: # FR
+                                servo_pin = [Dingo.front_right_hip, Dingo.front_right_upper, Dingo.front_right_lower][joint_idx]
+                            elif leg_idx == 1: # FL
+                                servo_pin = [Dingo.front_left_hip, Dingo.front_left_upper, Dingo.front_left_lower][joint_idx]
+                            elif leg_idx == 2: # BR
+                                servo_pin = [Dingo.back_right_hip, Dingo.back_right_upper, Dingo.back_right_lower][joint_idx]
+                            elif leg_idx == 3: # BL
+                                servo_pin = [Dingo.back_left_hip, Dingo.back_left_upper, Dingo.back_left_lower][joint_idx]
+                            
+                            try:
+                                command_servo_angle(servo_pin, target_angle)
+                            except Exception as e:
+                                print(f"Error moving servo on pin {servo_pin}: {e}")
+                                
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "ok", "calibration_pos": calibration_pos}).encode("utf-8"))
+                else:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "error", "message": "Invalid Stance"}).encode("utf-8"))
+            elif path == "/set_soft_motion":
+                content_length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(content_length)
+                params = json.loads(body.decode('utf-8'))
+                global use_soft_motion
+                use_soft_motion = bool(params.get("use_soft_motion", False))
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "ok", "use_soft_motion": use_soft_motion}).encode("utf-8"))
+            elif path == "/set_offset":
                 content_length = int(self.headers.get('Content-Length', 0))
                 body = self.rfile.read(content_length)
                 params = json.loads(body.decode('utf-8'))
@@ -472,7 +710,6 @@ if "--web" in sys.argv:
                 joint_idx = int(params["joint_idx"])
                 val = int(params["value"])
                 
-                global offsets
                 offsets[joint_idx, leg_idx] = val
                 
                 target_angle = val + calibration_pos[joint_idx]
@@ -487,7 +724,7 @@ if "--web" in sys.argv:
                     elif leg_idx == 3: # BL
                         servo_pin = [Dingo.back_left_hip, Dingo.back_left_upper, Dingo.back_left_lower][joint_idx]
                     
-                    Dingo.moveAbsAngle(servo_pin, target_angle)
+                    command_servo_angle(servo_pin, target_angle)
                     
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
@@ -540,6 +777,10 @@ if "--web" in sys.argv:
                     self.end_headers()
                     self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode("utf-8"))
 
+    init_angles()
+    t = threading.Thread(target=soft_motion_thread_func, daemon=True)
+    t.start()
+    
     port = 8080
     server_address = ('', port)
     httpd = http.server.HTTPServer(server_address, CalibrationHTTPRequestHandler)
