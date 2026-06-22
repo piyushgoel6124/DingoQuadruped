@@ -28,7 +28,7 @@ CALIBRATION PROCESS
             pos = calibration_pos
                                                 and,
             offsets = np.array(
-                    [[88, 0, 115, 86],
+                    [[88, 0, 97, 86],
                     [5, 0, 15, 7],
                     [0, 0, 35, 0]])
 3. Mount upper leg and lower leg servo horn **such that a positive calibration angle will achieve the desired position**.
@@ -533,7 +533,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 """
 
 offsets = np.array(
-                    [[88, 0, 115, 86],
+                    [[88, 0, 97, 86],
                     [5, 0, 15, 7],
                     [0, 0, 35, 0]])
 

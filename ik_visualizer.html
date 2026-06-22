@@ -354,6 +354,7 @@
                         <option value="1">Front Right (Right Leg Model)</option>
                         <option value="2">Rear Left (Left Leg Model)</option>
                         <option value="3">Rear Right (Right Leg Model)</option>
+                        <option value="all">Full Robot (All Legs)</option>
                     </select>
                 </div>
             </div>
@@ -389,10 +390,23 @@
                     </div>
                     <input type="range" class="input-slider" id="sliderPhi" min="30" max="120" step="0.5" value="73.917">
                 </div>
+                <div style="font-family: var(--font-mono); font-size: 0.85rem; background-color: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; margin-top: 10px;">
+                    <div>Thigh Length (L2): <span id="infoL2" style="color: var(--accent-blue); font-weight: 700;">0.1300</span> m</div>
+                    <div>Calf Length (L3): <span id="infoL3" style="color: var(--accent-green); font-weight: 700;">0.1381</span> m</div>
+                </div>
+            </div>
+
+            <!-- Control Mode Selection -->
+            <div class="section">
+                <div class="section-title">Control Mode</div>
+                <div class="btn-group" style="grid-template-columns: repeat(2, 1fr); margin-top: 0;">
+                    <button id="btnModeIK" class="active" style="padding: 6px; font-size: 0.75rem;">Paw Coordinates (IK)</button>
+                    <button id="btnModeFK" style="padding: 6px; font-size: 0.75rem;">Motor Angles (FK)</button>
+                </div>
             </div>
 
             <!-- Target Foot Coordinates -->
-            <div class="section">
+            <div id="sectionIK" class="section">
                 <div class="section-title">Target Foot Coordinates (m)</div>
                 <div class="control-group">
                     <div class="control-label">
@@ -418,6 +432,65 @@
                 <div class="btn-group">
                     <button id="btnResetStance">Reset Stance</button>
                     <button id="btnOrbitDemo">Walk Demo</button>
+                </div>
+            </div>
+
+            <!-- Direct Motor Control (FK) -->
+            <div id="sectionFK" class="section" style="display: none;">
+                <div class="section-title">Motor Angles (FK Mode)</div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Hip Angle (t1)</span>
+                        <span class="value" id="valJointT1">0.0°</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderJointT1" min="-22" max="22" step="0.5" value="0.0">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Thigh Angle (t2)</span>
+                        <span class="value" id="valJointT2">46.3°</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderJointT2" min="0" max="160" step="0.5" value="46.3">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Calf Angle (t3)</span>
+                        <span class="value" id="valJointT3">-2.9°</span>
+                    </div>
+                    <input type="range" class="input-slider" id="sliderJointT3" min="-80" max="80" step="0.5" value="-2.9">
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.8rem; background-color: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 15px;">
+                    <div>Calculated Paw Location:</div>
+                    <div style="margin-top: 4px; color: var(--accent-orange);">
+                        X: <span id="fkPawX" style="font-weight: 700;">0.000</span> m, 
+                        Y: <span id="fkPawY" style="font-weight: 700;">0.000</span> m, 
+                        Z: <span id="fkPawZ" style="font-weight: 700;">-0.180</span> m
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hardware Control -->
+            <div class="section">
+                <div class="section-title">Hardware Control</div>
+                <div class="control-group" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; user-select: none; font-size: 0.9rem;">
+                        <input type="checkbox" id="chkHardwareControl" style="width: 18px; height: 18px; cursor: pointer;">
+                        Enable Physical Servos
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; user-select: none; font-size: 0.9rem;">
+                        <input type="checkbox" id="chkControlOnlySelected" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        Control ONLY Active Leg
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; user-select: none; font-size: 0.9rem;">
+                        <input type="checkbox" id="chkSoftMotion" style="width: 18px; height: 18px; cursor: pointer;">
+                        Use Soft Motion
+                    </label>
+                    <button id="btnRelaxAll" style="width: 100%; background-color: var(--accent-red); color: white; border: none; font-weight: 700; margin-top: 5px; height: 36px; cursor: pointer; border-radius: 6px;">
+                        Relax All Motors
+                    </button>
+                    <div id="rawAnglesDisplay" style="margin-top: 12px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-orange); padding: 8px 12px; background-color: rgba(245, 158, 11, 0.05); border: 1px dashed rgba(245, 158, 11, 0.2); border-radius: 6px; display: none; line-height: 1.4;">
+                        Raw Servo: H = --°, U = --°, L = --°
+                    </div>
                 </div>
                 <div id="reachWarning" class="warning-card">
                     Target is outside the physical workspace boundary! Values have been clamped to prevent math errors.
@@ -546,6 +619,8 @@
         let scene, camera, renderer, controls;
         let shoulderOrigin, hipJoint, kneeJoint, footFoot;
         let lineHip, lineThigh, lineCalf, targetPointMarker;
+        let legsRenderGroup = [];
+        let bodyChassisMesh;
         let activeLegIndex = 0;
         let demoActive = false;
         let demoTime = 0;
@@ -563,193 +638,35 @@
         let targetY = 0.0;
         let targetZ = -0.180;
 
-        // --- Math Functions ---
-        function point_to_rad(p1, p2) {
-            let theta = Math.atan2(p2, p1);
-            return (theta + 2 * Math.PI) % (2 * Math.PI);
+        // Control Mode & FK parameters
+        let controlMode = 'IK';
+        let fkAngles = [0.0, 46.3 * Math.PI / 180.0, -2.9 * Math.PI / 180.0];
+
+        // --- Math & Helper Functions ---
+        function onWindowResize() {
+            const container = document.getElementById('canvas3d');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
         }
 
-        function RotMatrix3D_X(angle) {
-            const c = Math.cos(angle);
-            const s = Math.sin(angle);
-            return [
-                [1, 0, 0],
-                [0, c, -s],
-                [0, s, c]
-            ];
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
         }
 
-        function multiplyMatrixVector(m, v) {
-            return [
-                m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2],
-                m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2],
-                m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2]
-            ];
-        }
-
-        function solveInverseKinematics(x, y, z, legIndex, cfg) {
-            // Determine if leg is a right or a left leg
-            const is_right = (legIndex === 1 || legIndex === 3) ? 0 : 1;
-            
-            // Flip the y axis if the foot is a right foot to make calculation correct
-            let inputY = y;
-            if (is_right) inputY = -inputY;
-
-            let r_body_foot = [x, inputY, z];
-            
-            // Step 2: Rotate the origin frame to be in-line with config.L1 for calculating theta_1
-            const R1 = Math.PI/2 - cfg.phi;
-            const rot_mtx = RotMatrix3D_X(-R1);
-            let r_body_foot_ = multiplyMatrixVector(rot_mtx, r_body_foot);
-            
-            let rx = r_body_foot_[0];
-            let ry = r_body_foot_[1];
-            let rz = r_body_foot_[2];
-
-            // Step 3: Calculate theta_1
-            let len_A = Math.sqrt(ry * ry + rz * rz);
-            let isOutOfBounds = false;
-
-            // Prevent math errors for asin range
-            let ratio = (Math.sin(cfg.phi) * cfg.L1) / len_A;
-            if (ratio > 1.0) {
-                ratio = 1.0;
-                isOutOfBounds = true;
-            } else if (ratio < -1.0) {
-                ratio = -1.0;
-                isOutOfBounds = true;
+        function setCameraView(view) {
+            controls.reset();
+            if (view === 'side') {
+                camera.position.set(0, 0, 0.4);
+            } else if (view === 'front') {
+                camera.position.set(0.4, 0, 0);
+            } else if (view === 'top') {
+                camera.position.set(0.001, 0.4, 0);
+            } else if (view === 'iso') {
+                camera.position.set(0.3, 0.25, 0.4);
             }
-
-            let a_1 = point_to_rad(ry, rz);
-            let a_2 = Math.asin(ratio);
-            let a_3 = Math.PI - a_2 - cfg.phi;               
-
-            let theta_1 = a_1 + a_3;
-            if (theta_1 >= 2 * Math.PI) {
-                theta_1 = theta_1 % (2 * Math.PI);
-            }
-            
-            // Step 4: Translate frame to the frame of the leg and rotate to work on 2D plane
-            let offset = [0.0, cfg.L1 * Math.cos(theta_1), cfg.L1 * Math.sin(theta_1)];
-            let translated_frame = [
-                r_body_foot_[0] - offset[0],
-                r_body_foot_[1] - offset[1],
-                r_body_foot_[2] - offset[2]
-            ];
-            
-            let R2 = theta_1 + cfg.phi - Math.PI / 2;
-            const rot_mtx2 = RotMatrix3D_X(-R2);
-            let j4_2_vec_ = multiplyMatrixVector(rot_mtx2, translated_frame);
-            
-            let rx_ = j4_2_vec_[0];
-            let ry_ = j4_2_vec_[1];
-            let rz_ = j4_2_vec_[2];
-            
-            let len_B = Math.sqrt(rx_ * rx_ + rz_ * rz_);
-            
-            // Step 5: Solve 2D Knee and Thigh angles
-            if (len_B >= (cfg.L2 + cfg.L3)) {
-                len_B = (cfg.L2 + cfg.L3) * 0.999;
-                isOutOfBounds = true;
-            }
-            if (len_B < Math.abs(cfg.L2 - cfg.L3)) {
-                len_B = Math.abs(cfg.L2 - cfg.L3) * 1.001;
-                isOutOfBounds = true;
-            }
-            
-            let b_1 = point_to_rad(rx_, rz_);  
-            let cos_b2 = (cfg.L2*cfg.L2 + len_B*len_B - cfg.L3*cfg.L3) / (2 * cfg.L2 * len_B);
-            let cos_b3 = (cfg.L2*cfg.L2 + cfg.L3*cfg.L3 - len_B*len_B) / (2 * cfg.L2 * cfg.L3);
-            
-            cos_b2 = Math.max(-1.0, Math.min(1.0, cos_b2));
-            cos_b3 = Math.max(-1.0, Math.min(1.0, cos_b3));
-
-            let b_2 = Math.acos(cos_b2); 
-            let b_3 = Math.acos(cos_b3);  
-            
-            let theta_2 = b_1 - b_2;
-            let theta_3 = Math.PI - b_3;
-
-            // Offset correctors (AngleCorrector)
-            let raw_angles = [theta_1, theta_2, theta_3];
-            let corrected = [theta_1, theta_2 - Math.PI, theta_3 - Math.PI/2];
-
-            for (let i = 0; i < 3; i++) {
-                let theta = corrected[i];
-                if (theta > 2 * Math.PI) theta = theta % (2 * Math.PI);
-                if (theta > Math.PI) theta = -(2 * Math.PI - theta);
-                if (theta < -Math.PI) theta = (2 * Math.PI + theta);
-                corrected[i] = theta;
-            }
-
-            // Calculate joint 3D positions in the robot base frame
-            // Hip Joint Position (End of L1) in rotated frame, then rotated back:
-            const rot_mtx_inv = RotMatrix3D_X(R1);
-            let hip_pos_rot = [0, cfg.L1 * Math.cos(theta_1), cfg.L1 * Math.sin(theta_1)];
-            let hip_pos = multiplyMatrixVector(rot_mtx_inv, hip_pos_rot);
-            if (is_right) hip_pos[1] = -hip_pos[1]; // Flip back for rendering
-
-            // Knee Joint (End of L2) and Foot Joint (End of L3)
-            // L2 rotates about X-axis in local plane by R2 + theta_2
-            // Let's perform forward kinematics to find joint locations
-            // In 2D plane:
-            let knee_2d = [cfg.L2 * Math.cos(theta_2), 0, cfg.L2 * Math.sin(theta_2)];
-            let foot_2d = [
-                knee_2d[0] + cfg.L3 * Math.cos(theta_2 + theta_3),
-                0,
-                knee_2d[2] + cfg.L3 * Math.sin(theta_2 + theta_3)
-            ];
-
-            // Rotate back from 2D plane to original frame:
-            const rot_mtx2_inv = RotMatrix3D_X(R2);
-            let knee_pos_rot = [
-                knee_2d[0],
-                knee_2d[1] + offset[1],
-                knee_2d[2] + offset[2]
-            ];
-            let knee_pos = multiplyMatrixVector(rot_mtx2_inv, knee_pos_rot);
-            knee_pos = multiplyMatrixVector(rot_mtx_inv, knee_pos);
-            if (is_right) knee_pos[1] = -knee_pos[1];
-
-            let foot_pos_rot = [
-                foot_2d[0],
-                foot_2d[1] + offset[1],
-                foot_2d[2] + offset[2]
-            ];
-            let foot_pos = multiplyMatrixVector(rot_mtx2_inv, foot_pos_rot);
-            foot_pos = multiplyMatrixVector(rot_mtx_inv, foot_pos);
-            if (is_right) foot_pos[1] = -foot_pos[1];
-
-            return {
-                angles: raw_angles,
-                corrected: corrected,
-                isOutOfBounds: isOutOfBounds,
-                joints: {
-                    shoulder: [0, 0, 0],
-                    hip: hip_pos,
-                    knee: knee_pos,
-                    foot: foot_pos
-                },
-                steps: {
-                    is_right: is_right,
-                    R1: R1,
-                    r_foot_rot: r_body_foot_,
-                    len_A: len_A,
-                    a_1: a_1,
-                    a_2: a_2,
-                    a_3: a_3,
-                    theta_1: theta_1,
-                    offset: offset,
-                    R2: R2,
-                    j4_2_vec_: j4_2_vec_,
-                    len_B: len_B,
-                    b_1: b_1,
-                    b_2: b_2,
-                    b_3: b_3,
-                    theta_2: theta_2,
-                    theta_3: theta_3
-                }
-            };
         }
 
         // --- Initialize Three.js Scene ---
@@ -772,9 +689,8 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2 + 0.1; // Don't go below ground
+            controls.maxPolarAngle = Math.PI / 2 + 0.1;
 
-            // Lights
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
             scene.add(ambientLight);
 
@@ -782,17 +698,14 @@
             dirLight.position.set(1, 2, 1);
             scene.add(dirLight);
 
-            // Helpers & Grid
             const gridHelper = new THREE.GridHelper(1.0, 20, 0x26262f, 0x1a1a1f);
-            gridHelper.position.y = -0.25; // Floor reference
+            gridHelper.position.y = -0.25;
             scene.add(gridHelper);
 
-            // Origin axes helper
             const axesHelper = new THREE.AxesHelper(0.05);
             axesHelper.position.set(0, 0, 0);
             scene.add(axesHelper);
 
-            // Joint Spheres
             const createJointMarker = (color, radius = 0.008) => {
                 const geom = new THREE.SphereGeometry(radius, 16, 16);
                 const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.1 });
@@ -801,18 +714,6 @@
                 return mesh;
             };
 
-            shoulderOrigin = createJointMarker(0xec4899, 0.006); // Pink
-            hipJoint = createJointMarker(0xf59e0b); // Orange
-            kneeJoint = createJointMarker(0x38bdf8); // Blue
-            footFoot = createJointMarker(0x10b981, 0.006); // Green
-
-            // Target marker
-            const targetGeom = new THREE.SphereGeometry(0.004, 8, 8);
-            const targetMat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true });
-            targetPointMarker = new THREE.Mesh(targetGeom, targetMat);
-            scene.add(targetPointMarker);
-
-            // Link Lines (Cylinder segments represent links)
             const createLinkLine = (color) => {
                 const mat = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
                 const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
@@ -821,12 +722,52 @@
                 return line;
             };
 
+            // Single Leg View Markers
+            shoulderOrigin = createJointMarker(0xec4899, 0.006);
+            hipJoint = createJointMarker(0xf59e0b);
+            kneeJoint = createJointMarker(0x38bdf8);
+            footFoot = createJointMarker(0x10b981, 0.006);
+
             lineHip = createLinkLine(0xf59e0b);
             lineThigh = createLinkLine(0x38bdf8);
             lineCalf = createLinkLine(0x10b981);
 
+            // Full Robot View leg groups
+            legsRenderGroup = [];
+            for (let i = 0; i < 4; i++) {
+                const grp = {
+                    shoulder: createJointMarker(0xec4899, 0.005),
+                    hip: createJointMarker(0xf59e0b, 0.006),
+                    knee: createJointMarker(0x38bdf8, 0.006),
+                    foot: createJointMarker(0x10b981, 0.005),
+                    lineHip: createLinkLine(0xf59e0b),
+                    lineThigh: createLinkLine(0x38bdf8),
+                    lineCalf: createLinkLine(0x10b981)
+                };
+                grp.shoulder.visible = false;
+                grp.hip.visible = false;
+                grp.knee.visible = false;
+                grp.foot.visible = false;
+                grp.lineHip.visible = false;
+                grp.lineThigh.visible = false;
+                grp.lineCalf.visible = false;
+                legsRenderGroup.push(grp);
+            }
+
+            // Chassis
+            const bodyGeom = new THREE.BoxGeometry(0.2233, 0.122, 0.015);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.7, metalness: 0.3 });
+            bodyChassisMesh = new THREE.Mesh(bodyGeom, bodyMat);
+            scene.add(bodyChassisMesh);
+            bodyChassisMesh.visible = false;
+
+            const targetGeom = new THREE.SphereGeometry(0.004, 8, 8);
+            const targetMat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true });
+            targetPointMarker = new THREE.Mesh(targetGeom, targetMat);
+            scene.add(targetPointMarker);
+
             window.addEventListener('resize', onWindowResize);
-            updateKinematics();
+            syncState();
             animate();
         }
 
@@ -838,194 +779,329 @@
             line.geometry.setFromPoints(points);
         }
 
-        function onWindowResize() {
-            const container = document.getElementById('canvas3d');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
+        // --- Unified Sync State function with Python backend ---
+        let isSyncing = false;
+        async function syncState(extraPayload = {}) {
+            if (isSyncing) return;
+            isSyncing = true;
 
-        function animate() {
-            requestAnimationFrame(animate);
+            const payload = {
+                mode: controlMode,
+                leg_index: activeLegIndex,
+                demo_active: demoActive,
+                hardware_control_enabled: document.getElementById('chkHardwareControl').checked,
+                control_only_this_leg: document.getElementById('chkControlOnlySelected').checked,
+                use_soft_motion: document.getElementById('chkSoftMotion').checked,
+                config_dims: {
+                    L1: config.L1,
+                    L2: config.L2,
+                    L3: config.L3,
+                    phi: config.phi
+                },
+                ...extraPayload
+            };
 
-            if (demoActive) {
-                demoTime += 0.03;
-                // Generate a walking path trajectory (elliptical)
-                const cx = 0.0;
-                const cy = 0.0;
-                const cz = -0.180;
-                const radiusX = 0.05;
-                const radiusZ = 0.04;
-
-                targetX = cx + radiusX * Math.cos(demoTime);
-                targetZ = cz + radiusZ * Math.sin(demoTime);
-                if (targetZ > cz) targetZ = cz; // Stance phase flat line on ground
-
-                // Update UI sliders dynamically to match demo values
-                document.getElementById('sliderX').value = targetX.toFixed(3);
-                document.getElementById('sliderZ').value = targetZ.toFixed(3);
-                document.getElementById('valX').innerText = targetX.toFixed(3);
-                document.getElementById('valZ').innerText = targetZ.toFixed(3);
-
-                updateKinematics();
-            }
-
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        function setCameraView(view) {
-            controls.reset();
-            if (view === 'side') {
-                camera.position.set(0, 0, 0.4);
-            } else if (view === 'front') {
-                camera.position.set(0.4, 0, 0);
-            } else if (view === 'top') {
-                camera.position.set(0.001, 0.4, 0);
-            } else if (view === 'iso') {
-                camera.position.set(0.3, 0.25, 0.4);
-            }
-        }
-
-        // --- Kinematics and UI Sync ---
-        function updateKinematics() {
-            const res = solveInverseKinematics(targetX, targetY, targetZ, activeLegIndex, config);
-
-            // Update warning panel
-            const warningEl = document.getElementById('reachWarning');
-            if (res.isOutOfBounds) {
-                warningEl.style.display = 'block';
+            const rightSidebar = document.querySelector('.sidebar.right');
+            if (activeLegIndex === 'all') {
+                rightSidebar.style.opacity = '0.3';
+                rightSidebar.style.pointerEvents = 'none';
+                
+                document.getElementById('btnModeFK').style.display = 'none';
+                if (controlMode === 'FK') {
+                    controlMode = 'IK';
+                    document.getElementById('btnModeIK').classList.add('active');
+                    document.getElementById('btnModeFK').classList.remove('active');
+                    document.getElementById('sectionIK').style.display = 'block';
+                    document.getElementById('sectionFK').style.display = 'none';
+                }
             } else {
-                warningEl.style.display = 'none';
+                rightSidebar.style.opacity = '1.0';
+                rightSidebar.style.pointerEvents = 'auto';
+                document.getElementById('btnModeFK').style.display = 'block';
             }
 
-            // Move 3D Markers
-            shoulderOrigin.position.set(...res.joints.shoulder);
-            hipJoint.position.set(...res.joints.hip);
-            kneeJoint.position.set(...res.joints.knee);
-            footFoot.position.set(...res.joints.foot);
-            targetPointMarker.position.set(targetX, targetY, targetZ);
+            if (controlMode === 'IK' && !demoActive) {
+                payload.target_coords = [targetX, targetY, targetZ];
+            }
+            if (controlMode === 'FK') {
+                payload.target_angles = fkAngles;
+            }
 
-            // Update lines
-            updateLinkGeometry(lineHip, res.joints.shoulder, res.joints.hip);
-            updateLinkGeometry(lineThigh, res.joints.hip, res.joints.knee);
-            updateLinkGeometry(lineCalf, res.joints.knee, res.joints.foot);
+            try {
+                const response = await fetch('/api/update_state', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
 
-            // Render Math step values
-            const steps = res.steps;
+                if (res.status === "ok") {
+                    if (demoActive) {
+                        targetX = res.target_coords[0];
+                        targetZ = res.target_coords[2];
 
-            // Step 1 Output
-            document.getElementById('resStep1').innerHTML = 
-                `is_right = ${steps.is_right === 1 ? 'true' : 'false'}, [x, y, z] = [${targetX.toFixed(3)}, ${targetY.toFixed(3)}, ${targetZ.toFixed(3)}]`;
+                        document.getElementById('sliderX').value = targetX.toFixed(3);
+                        document.getElementById('sliderZ').value = targetZ.toFixed(3);
+                        document.getElementById('valX').innerText = targetX.toFixed(3);
+                        document.getElementById('valZ').innerText = targetZ.toFixed(3);
+                    }
 
-            // Step 2 Output
-            document.getElementById('resStep2').innerHTML = 
-                `R1 = ${steps.R1.toFixed(3)} rad (${(steps.R1 * 180 / Math.PI).toFixed(1)}°)<br>` +
-                `[x', y', z'] = [${steps.r_foot_rot[0].toFixed(3)}, ${steps.r_foot_rot[1].toFixed(3)}, ${steps.r_foot_rot[2].toFixed(3)}]`;
+                    if (controlMode === 'FK') {
+                        const fx = res.joints.foot[0];
+                        const fy = res.joints.foot[1];
+                        const fz = res.joints.foot[2];
+                        document.getElementById('fkPawX').innerText = fx.toFixed(3);
+                        document.getElementById('fkPawY').innerText = fy.toFixed(3);
+                        document.getElementById('fkPawZ').innerText = fz.toFixed(3);
+                    }
 
-            // Step 3 Output
-            document.getElementById('resStep3').innerHTML = 
-                `len_A = ${steps.len_A.toFixed(3)}m, ` +
-                `a_2 = ${steps.a_2.toFixed(3)} rad (${(steps.a_2 * 180 / Math.PI).toFixed(1)}°)<br>` +
-                `theta_1 = ${steps.theta_1.toFixed(3)} rad (${(steps.theta_1 * 180 / Math.PI).toFixed(1)}°)`;
+                    const warningEl = document.getElementById('reachWarning');
+                    if (controlMode === 'IK' && res.isOutOfBounds) {
+                        warningEl.style.display = 'block';
+                    } else {
+                        warningEl.style.display = 'none';
+                    }
 
-            // Step 4 Output
-            document.getElementById('resStep4').innerHTML = 
-                `R2 = ${(steps.R2 * 180 / Math.PI).toFixed(1)}°<br>` +
-                `[x_, y_, z_] = [${steps.j4_2_vec_[0].toFixed(3)}, ${steps.j4_2_vec_[1].toFixed(3)}, ${steps.j4_2_vec_[2].toFixed(3)}]`;
+                    if (res.view_mode === 'single') {
+                        bodyChassisMesh.visible = false;
+                        shoulderOrigin.visible = true;
+                        hipJoint.visible = true;
+                        kneeJoint.visible = true;
+                        footFoot.visible = true;
+                        lineHip.visible = true;
+                        lineThigh.visible = true;
+                        lineCalf.visible = true;
 
-            // Step 5 Output
-            document.getElementById('resStep5').innerHTML = 
-                `len_B = ${steps.len_B.toFixed(3)}m<br>` +
-                `theta_2 = ${steps.theta_2.toFixed(3)} rad (${(steps.theta_2 * 180 / Math.PI).toFixed(1)}°)<br>` +
-                `theta_3 = ${steps.theta_3.toFixed(3)} rad (${(steps.theta_3 * 180 / Math.PI).toFixed(1)}°)`;
+                        legsRenderGroup.forEach(grp => {
+                            grp.shoulder.visible = false;
+                            grp.hip.visible = false;
+                            grp.knee.visible = false;
+                            grp.foot.visible = false;
+                            grp.lineHip.visible = false;
+                            grp.lineThigh.visible = false;
+                            grp.lineCalf.visible = false;
+                        });
 
-            // Step 6 Output
-            const finalDeg = res.corrected.map(a => (a * 180 / Math.PI).toFixed(2));
-            const colorClass = res.isOutOfBounds ? 'out-of-bounds' : '';
-            document.getElementById('resStep6').innerHTML = 
-                `<span class="${colorClass}">corrected angles:<br>` +
-                `t1 = ${finalDeg[0]}°, t2 = ${finalDeg[1]}°, t3 = ${finalDeg[2]}°</span>`;
+                        shoulderOrigin.position.set(...res.joints.shoulder);
+                        hipJoint.position.set(...res.joints.hip);
+                        kneeJoint.position.set(...res.joints.knee);
+                        footFoot.position.set(...res.joints.foot);
+
+                        if (controlMode === 'IK') {
+                            targetPointMarker.position.set(targetX, targetY, targetZ);
+                            targetPointMarker.visible = true;
+                        } else {
+                            targetPointMarker.position.set(...res.joints.foot);
+                            targetPointMarker.visible = false;
+                        }
+
+                        updateLinkGeometry(lineHip, res.joints.shoulder, res.joints.hip);
+                        updateLinkGeometry(lineThigh, res.joints.hip, res.joints.knee);
+                        updateLinkGeometry(lineCalf, res.joints.knee, res.joints.foot);
+
+                        const steps = res.steps;
+                        const finalAngles = res.corrected;
+
+                        if (controlMode === 'IK' && steps && steps.R1 !== undefined) {
+                            document.getElementById('resStep1').innerHTML = 
+                                `is_right = ${steps.is_right === 1 ? 'true' : 'false'}, [x, y, z] = [${targetX.toFixed(3)}, ${targetY.toFixed(3)}, ${targetZ.toFixed(3)}]`;
+                            document.getElementById('resStep2').innerHTML = 
+                                `R1 = ${steps.R1.toFixed(3)} rad (${(steps.R1 * 180 / Math.PI).toFixed(1)}°)<br>` +
+                                `[x', y', z'] = [${steps.r_foot_rot[0].toFixed(3)}, ${steps.r_foot_rot[1].toFixed(3)}, ${steps.r_foot_rot[2].toFixed(3)}]`;
+                            document.getElementById('resStep3').innerHTML = 
+                                `len_A = ${steps.len_A.toFixed(3)}m, ` +
+                                `a_2 = ${steps.a_2.toFixed(3)} rad (${(steps.a_2 * 180 / Math.PI).toFixed(1)}°)<br>` +
+                                `theta_1 = ${steps.theta_1.toFixed(3)} rad (${(steps.theta_1 * 180 / Math.PI).toFixed(1)}°)`;
+                            document.getElementById('resStep4').innerHTML = 
+                                `R2 = ${(steps.R2 * 180 / Math.PI).toFixed(1)}°<br>` +
+                                `[x_, y_, z_] = [${steps.j4_2_vec_[0].toFixed(3)}, ${steps.j4_2_vec_[1].toFixed(3)}, ${steps.j4_2_vec_[2].toFixed(3)}]`;
+                            document.getElementById('resStep5').innerHTML = 
+                                `len_B = ${steps.len_B.toFixed(3)}m<br>` +
+                                `theta_2 = ${steps.theta_2.toFixed(3)} rad (${(steps.theta_2 * 180 / Math.PI).toFixed(1)}°)<br>` +
+                                `theta_3 = ${steps.theta_3.toFixed(3)} rad (${(steps.theta_3 * 180 / Math.PI).toFixed(1)}°)`;
+                            
+                            const finalDeg = finalAngles.map(a => (a * 180 / Math.PI).toFixed(2));
+                            const colorClass = res.isOutOfBounds ? 'out-of-bounds' : '';
+                            document.getElementById('resStep6').innerHTML = 
+                                `<span class="${colorClass}">corrected angles:<br>` +
+                                `t1 = ${finalDeg[0]}°, t2 = ${finalDeg[1]}°, t3 = ${finalDeg[2]}°</span>`;
+                        }
+                    } else {
+                        // view_mode === 'full'
+                        bodyChassisMesh.visible = true;
+                        
+                        shoulderOrigin.visible = false;
+                        hipJoint.visible = false;
+                        kneeJoint.visible = false;
+                        footFoot.visible = false;
+                        lineHip.visible = false;
+                        lineThigh.visible = false;
+                        lineCalf.visible = false;
+                        targetPointMarker.visible = false;
+
+                        for (let i = 0; i < 4; i++) {
+                            const grp = legsRenderGroup[i];
+                            const legData = res.legs_joints[i];
+                            
+                            grp.shoulder.visible = true;
+                            grp.hip.visible = true;
+                            grp.knee.visible = true;
+                            grp.foot.visible = true;
+                            grp.lineHip.visible = true;
+                            grp.lineThigh.visible = true;
+                            grp.lineCalf.visible = true;
+
+                            grp.shoulder.position.set(...legData.joints.shoulder);
+                            grp.hip.position.set(...legData.joints.hip);
+                            grp.knee.position.set(...legData.joints.knee);
+                            grp.foot.position.set(...legData.joints.foot);
+
+                            updateLinkGeometry(grp.lineHip, legData.joints.shoulder, legData.joints.hip);
+                            updateLinkGeometry(grp.lineThigh, legData.joints.hip, legData.joints.knee);
+                            updateLinkGeometry(grp.lineCalf, legData.joints.knee, legData.joints.foot);
+                        }
+                    }
+
+                    const rawDisp = document.getElementById('rawAnglesDisplay');
+                    if (document.getElementById('chkHardwareControl').checked && activeLegIndex !== 'all' && res.raw_angles) {
+                        rawDisp.style.display = 'block';
+                        rawDisp.innerText = `Raw Servo: H = ${res.raw_angles[0]}°, U = ${res.raw_angles[1]}°, L = ${res.raw_angles[2]}°`;
+                    } else {
+                        rawDisp.style.display = 'none';
+                    }
+                }
+            } catch (err) {
+                console.error("Error syncing state with backend:", err);
+            } finally {
+                isSyncing = false;
+            }
         }
 
         // --- Event Listeners ---
         function setupUIEventListeners() {
-            // Leg Selector
             document.getElementById('legSelector').addEventListener('change', (e) => {
-                activeLegIndex = parseInt(e.target.value);
-                updateKinematics();
+                const val = e.target.value;
+                activeLegIndex = (val === 'all') ? 'all' : parseInt(val);
+                syncState();
             });
 
-            // Sliders links
             document.getElementById('sliderL1').addEventListener('input', (e) => {
                 config.L1 = parseFloat(e.target.value);
                 document.getElementById('valL1').innerText = config.L1.toFixed(4);
-                updateKinematics();
+                syncState();
             });
             document.getElementById('sliderL2').addEventListener('input', (e) => {
                 config.L2 = parseFloat(e.target.value);
                 document.getElementById('valL2').innerText = config.L2.toFixed(4);
-                updateKinematics();
+                document.getElementById('infoL2').innerText = config.L2.toFixed(4);
+                syncState();
             });
             document.getElementById('sliderL3').addEventListener('input', (e) => {
                 config.L3 = parseFloat(e.target.value);
                 document.getElementById('valL3').innerText = config.L3.toFixed(4);
-                updateKinematics();
+                document.getElementById('infoL3').innerText = config.L3.toFixed(4);
+                syncState();
             });
             document.getElementById('sliderPhi').addEventListener('input', (e) => {
                 const deg = parseFloat(e.target.value);
                 config.phi = deg * Math.PI / 180.0;
                 document.getElementById('valPhi').innerText = deg.toFixed(1) + '°';
-                updateKinematics();
+                syncState();
             });
 
-            // Sliders coordinates
+            const btnModeIK = document.getElementById('btnModeIK');
+            const btnModeFK = document.getElementById('btnModeFK');
+            const sectionIK = document.getElementById('sectionIK');
+            const sectionFK = document.getElementById('sectionFK');
+
+            btnModeIK.addEventListener('click', () => {
+                controlMode = 'IK';
+                btnModeIK.classList.add('active');
+                btnModeFK.classList.remove('active');
+                sectionIK.style.display = 'block';
+                sectionFK.style.display = 'none';
+                syncState();
+            });
+
+            btnModeFK.addEventListener('click', () => {
+                controlMode = 'FK';
+                btnModeFK.classList.add('active');
+                btnModeIK.classList.remove('active');
+                sectionIK.style.display = 'none';
+                sectionFK.style.display = 'block';
+                syncState();
+            });
+
+            document.getElementById('sliderJointT1').addEventListener('input', (e) => {
+                const deg = parseFloat(e.target.value);
+                fkAngles[0] = deg * Math.PI / 180.0;
+                document.getElementById('valJointT1').innerText = deg.toFixed(1) + '°';
+                syncState();
+            });
+            document.getElementById('sliderJointT2').addEventListener('input', (e) => {
+                const deg = parseFloat(e.target.value);
+                fkAngles[1] = deg * Math.PI / 180.0;
+                document.getElementById('valJointT2').innerText = deg.toFixed(1) + '°';
+                syncState();
+            });
+            document.getElementById('sliderJointT3').addEventListener('input', (e) => {
+                const deg = parseFloat(e.target.value);
+                fkAngles[2] = deg * Math.PI / 180.0;
+                document.getElementById('valJointT3').innerText = deg.toFixed(1) + '°';
+                syncState();
+            });
+
             document.getElementById('sliderX').addEventListener('input', (e) => {
                 targetX = parseFloat(e.target.value);
                 document.getElementById('valX').innerText = targetX.toFixed(3);
-                updateKinematics();
+                syncState();
             });
             document.getElementById('sliderY').addEventListener('input', (e) => {
                 targetY = parseFloat(e.target.value);
                 document.getElementById('valY').innerText = targetY.toFixed(3);
-                updateKinematics();
+                syncState();
             });
             document.getElementById('sliderZ').addEventListener('input', (e) => {
                 targetZ = parseFloat(e.target.value);
                 document.getElementById('valZ').innerText = targetZ.toFixed(3);
-                updateKinematics();
+                syncState();
             });
 
-            // Reset button
             document.getElementById('btnResetStance').addEventListener('click', () => {
                 targetX = 0.0;
                 targetY = 0.0;
                 targetZ = -0.180;
-
                 document.getElementById('sliderX').value = "0.0";
                 document.getElementById('sliderY').value = "0.0";
                 document.getElementById('sliderZ').value = "-0.180";
-
                 document.getElementById('valX').innerText = "0.000";
                 document.getElementById('valY').innerText = "0.000";
                 document.getElementById('valZ').innerText = "-0.180";
-
-                updateKinematics();
+                syncState();
             });
 
-            // Demo button
             const btnDemo = document.getElementById('btnOrbitDemo');
             btnDemo.addEventListener('click', () => {
                 demoActive = !demoActive;
                 btnDemo.innerText = demoActive ? 'Stop Demo' : 'Walk Demo';
                 btnDemo.classList.toggle('active', demoActive);
+                syncState();
+            });
+
+            document.getElementById('chkHardwareControl').addEventListener('change', () => {
+                syncState();
+            });
+
+            document.getElementById('btnRelaxAll').addEventListener('click', () => {
+                document.getElementById('chkHardwareControl').checked = false;
+                syncState();
             });
         }
 
-        // Initialize App
         window.onload = () => {
             init3D();
             setupUIEventListeners();
+            setInterval(syncState, 33);
         };
     </script>
 </body>
