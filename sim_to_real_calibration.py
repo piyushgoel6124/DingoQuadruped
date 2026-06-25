@@ -23,21 +23,21 @@ sys.modules['std_msgs.msg'] = DummyRospy('std_msgs.msg')
 sys.modules['std_msgs.msg'].Header = DummyMsg
 sys.modules['std_msgs.msg'].Bool = DummyMsg
 sys.modules['std_msgs.msg'].Float64 = DummyMsg
-sys.modules['dingo_control.msg'] = DummyRospy('dingo_control.msg')
-sys.modules['dingo_control.msg'].TaskSpace = DummyMsg
-sys.modules['dingo_control.msg'].JointSpace = DummyMsg
-sys.modules['dingo_control.msg'].Angle = DummyMsg
+sys.modules['robodog_control.msg'] = DummyRospy('robodog_control.msg')
+sys.modules['robodog_control.msg'].TaskSpace = DummyMsg
+sys.modules['robodog_control.msg'].JointSpace = DummyMsg
+sys.modules['robodog_control.msg'].Angle = DummyMsg
 
-# Add dingo source paths
+# Add robodog source paths
 base_dir = "/home/pi/robodog"
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_control", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_utilities", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_servo_interfacing", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_peripheral_interfacing", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_input_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_control", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_utilities", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_hardware_interfacing", "robodog_servo_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_hardware_interfacing", "robodog_peripheral_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_hardware_interfacing", "robodog_input_interfacing", "src"))
 
-from dingo_control.Config import Configuration, Leg_linkage
-from dingo_control.Kinematics import four_legs_inverse_kinematics
+from robodog_control.Config import Configuration, Leg_linkage
+from robodog_control.Kinematics import four_legs_inverse_kinematics
 from transforms3d.euler import euler2mat
 import json
 
@@ -104,7 +104,7 @@ def main():
     leg_names = ["Front Right (FR)", "Front Left (FL)", "Back Right (BR)", "Back Left (BL)"]
     
     # Load offsets if any
-    cal_path = os.path.join(base_dir, "calibration_tool", "dingo_calibration_offsets.json")
+    cal_path = os.path.join(base_dir, "calibration_tool", "robodog_calibration_offsets.json")
     offsets = [0.0] * 12
     inversions = [False] * 12
     if os.path.exists(cal_path):
@@ -117,7 +117,7 @@ def main():
             pass
 
     print("\n" + "="*60)
-    print("      DINGO SIM-TO-REAL CALIBRATION & KINEMATICS MAPPER")
+    print("      ROBODOG SIM-TO-REAL CALIBRATION & KINEMATICS MAPPER")
     print("="*60)
     print("This tool will guide you to manually position your real dog")
     print("to match the simulated model coordinates, then calculate offsets.")

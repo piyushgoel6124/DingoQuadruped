@@ -64,7 +64,7 @@ def scan_using_circuitpython():
     return True
 
 def main():
-    print("=== Dingo Quadruped - I2C Scanner ===")
+    print("=== RoboDog Quadruped - I2C Scanner ===")
     # Try smbus first
     success = scan_using_smbus()
     if not success:

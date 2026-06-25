@@ -1,0 +1,17 @@
+{
+    "axis_mapping": {
+        "pitch_index": 1,
+        "roll_index": 2,
+        "yaw_index": 0
+    },
+    "inversions": {
+        "pitch": true,
+        "roll": true,
+        "yaw": true
+    },
+    "zero_offsets_deg": {
+        "pitch": -0.0625,
+        "roll": -4.4375,
+        "yaw": -356.3125
+    }
+}

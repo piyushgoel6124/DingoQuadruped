@@ -7,7 +7,7 @@ import numpy as np
 from types import ModuleType
 
 # -------------------------------------------------------------------------
-# 1. ROS Mocking Layer to prevent crashes from dingo_control imports
+# 1. ROS Mocking Layer to prevent crashes from robodog_control imports
 # -------------------------------------------------------------------------
 class DummyRospy(ModuleType):
     def loginfo(self, *args, **kwargs):
@@ -53,30 +53,30 @@ sys.modules['std_msgs.msg'].Header = DummyMsg
 sys.modules['std_msgs.msg'].Bool = DummyMsg
 sys.modules['std_msgs.msg'].Float64 = DummyMsg
 
-sys.modules['dingo_control.msg'] = DummyRospy('dingo_control.msg')
-sys.modules['dingo_control.msg'].TaskSpace = DummyMsg
-sys.modules['dingo_control.msg'].JointSpace = DummyMsg
-sys.modules['dingo_control.msg'].Angle = DummyMsg
+sys.modules['robodog_control.msg'] = DummyRospy('robodog_control.msg')
+sys.modules['robodog_control.msg'].TaskSpace = DummyMsg
+sys.modules['robodog_control.msg'].JointSpace = DummyMsg
+sys.modules['robodog_control.msg'].Angle = DummyMsg
 
 # -------------------------------------------------------------------------
 # 2. Add package paths to Python path
 # -------------------------------------------------------------------------
 base_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_control", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_utilities", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_servo_interfacing", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_peripheral_interfacing", "src"))
-sys.path.append(os.path.join(base_dir, "dingo_ws", "src", "dingo_hardware_interfacing", "dingo_input_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_control", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_utilities", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_hardware_interfacing", "robodog_servo_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_hardware_interfacing", "robodog_peripheral_interfacing", "src"))
+sys.path.append(os.path.join(base_dir, "robodog_ws", "src", "robodog_hardware_interfacing", "robodog_input_interfacing", "src"))
 
-# Now import the necessary modules from dingo_control
-from dingo_control.Config import Configuration, Leg_linkage
-from dingo_control.Kinematics import four_legs_inverse_kinematics
-from dingo_control.Gaits import GaitController
-from dingo_control.StanceController import StanceController
-from dingo_control.SwingLegController import SwingController
-from dingo_control.State import BehaviorState, State
-from dingo_control.Command import Command
-from dingo_utilities.Utilities import clipped_first_order_filter
+# Now import the necessary modules from robodog_control
+from robodog_control.Config import Configuration, Leg_linkage
+from robodog_control.Kinematics import four_legs_inverse_kinematics
+from robodog_control.Gaits import GaitController
+from robodog_control.StanceController import StanceController
+from robodog_control.SwingLegController import SwingController
+from robodog_control.State import BehaviorState, State
+from robodog_control.Command import Command
+from robodog_utilities.Utilities import clipped_first_order_filter
 from transforms3d.euler import euler2mat
 
 # -------------------------------------------------------------------------
@@ -276,7 +276,7 @@ class DirectKeyboardWalk:
         self.running = True
 
     def load_calibration(self):
-        cal_path = os.path.join(base_dir, "calibration_tool", "dingo_calibration_offsets.json")
+        cal_path = os.path.join(base_dir, "calibration_tool", "robodog_calibration_offsets.json")
         if os.path.exists(cal_path):
             try:
                 with open(cal_path, "r") as f:
@@ -395,7 +395,7 @@ class DirectKeyboardWalk:
         dt = 1.0 / rate_hz
         
         print("--------------------------------------------------")
-        print("Dingo Standalone Keyboard Walking Controller Active")
+        print("RoboDog Standalone Keyboard Walking Controller Active")
         print("Controls:")
         print("  [W] Walk Forward      [S] Walk Backward")
         print("  [A] Strafe Left       [D] Strafe Right")

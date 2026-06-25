@@ -1,5 +1,9 @@
 #include <Servo.h>
 
+// IDENTIFICATION CONFIGURATION
+// Compile and upload with "x1" to the Left Nano, and "x2" to the Right Nano.
+const String BOARD_ID = "x1"; 
+
 Servo servos[6];
 
 const byte servoPins[6]  = {3, 4, 5, 6, 7, 8};
@@ -12,6 +16,11 @@ const unsigned long reportInterval = 100; // ms
 
 bool servoAttached[6];
 
+// Watchdog and active status variables
+bool active = false;
+unsigned long lastCommandTime = 0;
+const unsigned long watchdogTimeout = 5000; // 5 seconds
+
 void setup() {
   Serial.begin(115200);
 
@@ -19,14 +28,11 @@ void setup() {
   analogReference(EXTERNAL);
 
   for (int i = 0; i < 6; i++) {
-    servos[i].attach(servoPins[i]);
-    servos[i].write(90);
-    servoAttached[i] = true;
+    servoAttached[i] = false;
   }
 }
 
 void loop() {
-
   while (Serial.available()) {
     char c = Serial.read();
 
@@ -39,13 +45,48 @@ void loop() {
     }
   }
 
-  if (millis() - lastReport >= reportInterval) {
+  // Watchdog: detach servos and stop sending analogs if no serial communications
+  if (active && (millis() - lastCommandTime >= watchdogTimeout)) {
+    active = false;
+    for (int i = 0; i < 6; i++) {
+      if (servoAttached[i]) {
+        servos[i].detach();
+        servoAttached[i] = false;
+      }
+    }
+  }
+
+  if (active && (millis() - lastReport >= reportInterval)) {
     lastReport = millis();
     sendAnalogs();
   }
 }
 
 void processCommand(String cmd) {
+  // Any incoming command activates telemetry/servo control
+  active = true;
+  lastCommandTime = millis();
+
+  if (cmd == "START") {
+    // Just reset watchdog and enable active reporting
+    return;
+  }
+
+  if (cmd == "STOP") {
+    active = false;
+    for (int i = 0; i < 6; i++) {
+      if (servoAttached[i]) {
+        servos[i].detach();
+        servoAttached[i] = false;
+      }
+    }
+    return;
+  }
+
+  if (cmd == "ID") {
+    Serial.println("ID:" + BOARD_ID);
+    return;
+  }
 
   int v[6];
 

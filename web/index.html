@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
-    <title>Dingo Quadruped 3D Live Dashboard</title>
+    <title>RoboDog Quadruped 3D Live Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
@@ -20,7 +22,13 @@
             --text-color: #f3f4f6;
             --text-muted: #9ca3af;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -29,6 +37,7 @@
             display: flex;
             height: 100vh;
         }
+
         #left-panel {
             width: 420px;
             background: var(--card-bg);
@@ -40,11 +49,13 @@
             z-index: 10;
             overflow-y: auto;
         }
+
         #canvas-container {
             flex-grow: 1;
             position: relative;
             background: radial-gradient(circle at center, #111827 0%, #030712 100%);
         }
+
         h1 {
             font-size: 20px;
             font-weight: 700;
@@ -57,6 +68,7 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
@@ -64,6 +76,7 @@
             padding: 16px;
             margin-bottom: 16px;
         }
+
         .card-title {
             font-size: 11px;
             text-transform: uppercase;
@@ -72,24 +85,37 @@
             margin-bottom: 12px;
             font-weight: 600;
         }
+
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
+
         .stat-box {
             display: flex;
             flex-direction: column;
         }
-        .stat-label { font-size: 12px; color: var(--text-muted); }
-        .stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
-        
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         #keys-container {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin-top: 8px;
         }
+
         .key-badge {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--border-color);
@@ -99,6 +125,7 @@
             font-size: 12px;
             text-transform: uppercase;
         }
+
         .key-active {
             background: var(--accent-blue);
             color: #000;
@@ -106,25 +133,42 @@
             font-weight: bold;
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
             font-family: 'JetBrains Mono', monospace;
         }
-        th, td {
+
+        th,
+        td {
             text-align: left;
             padding: 6px 4px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        th { color: var(--text-muted); font-weight: 600; }
-        
-        .leg-row-fr { color: var(--accent-green); }
-        .leg-row-fl { color: var(--accent-purple); }
-        .leg-row-br { color: var(--accent-yellow); }
-        .leg-row-bl { color: var(--accent-pink); }
-        
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .leg-row-fr {
+            color: var(--accent-green);
+        }
+
+        .leg-row-fl {
+            color: var(--accent-purple);
+        }
+
+        .leg-row-br {
+            color: var(--accent-yellow);
+        }
+
+        .leg-row-bl {
+            color: var(--accent-pink);
+        }
+
         #overlay-controls {
             position: absolute;
             top: 24px;
@@ -137,13 +181,16 @@
             backdrop-filter: blur(8px);
             pointer-events: none;
         }
+
         .control-item {
             margin-bottom: 6px;
         }
+
         .control-item span {
             font-weight: bold;
             color: var(--accent-blue);
         }
+
         .calibration-grid {
             display: grid;
             grid-template-columns: auto 1fr;
@@ -152,8 +199,9 @@
             font-size: 12px;
             margin-top: 10px;
         }
+
         .calibration-input {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 6px;
@@ -161,6 +209,7 @@
             font-family: 'JetBrains Mono', monospace;
             width: 100%;
         }
+
         .calibration-select {
             background: #111827;
             border: 1px solid var(--border-color);
@@ -171,6 +220,7 @@
             width: 100%;
             cursor: pointer;
         }
+
         .btn-primary {
             background: var(--accent-blue);
             color: #0b0f19;
@@ -183,9 +233,11 @@
             margin-top: 12px;
             transition: opacity 0.2s;
         }
+
         .btn-primary:hover {
             opacity: 0.9;
         }
+
         .tab-bar {
             display: flex;
             gap: 8px;
@@ -193,6 +245,7 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 8px;
         }
+
         .tab-button {
             background: transparent;
             border: none;
@@ -204,19 +257,25 @@
             border-radius: 6px;
             transition: all 0.2s;
         }
+
         .tab-button.active {
             background: rgba(56, 189, 248, 0.15);
             color: var(--accent-blue);
         }
     </style>
 </head>
+
 <body>
     <div id="left-panel">
         <h1>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-blue)"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="3"></circle></svg>
-            DINGO 3D TELEMETRY
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="color:var(--accent-blue)">
+                <rect x="2" y="2" width="20" height="20" rx="5"></rect>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            ROBODOG 3D TELEMETRY
         </h1>
-        
+
         <div class="tab-bar">
             <button id="btn-tab-dash" class="tab-button active" onclick="switchTab('dash')">Dashboard</button>
             <button id="btn-tab-cal" class="tab-button" onclick="switchTab('cal')">Calibration Mode</button>
@@ -226,68 +285,80 @@
         <div id="dashboard-tab-content">
             <div class="card">
                 <div class="card-title">System Status</div>
-            <div class="grid-2">
-                <div class="stat-box">
-                    <span class="stat-label">Behavior Mode</span>
-                    <span id="behavior-mode" class="stat-value">REST</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Height (cm)</span>
-                    <span id="height-val" class="stat-value">-20.5</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">IMU Roll</span>
-                    <span id="imu-roll" class="stat-value">0.0°</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">IMU Pitch</span>
-                    <span id="imu-pitch" class="stat-value">0.0°</span>
+                <div class="grid-2">
+                    <div class="stat-box">
+                        <span class="stat-label">Behavior Mode</span>
+                        <span id="behavior-mode" class="stat-value">REST</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Height (cm)</span>
+                        <span id="height-val" class="stat-value">-20.5</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">IMU Roll</span>
+                        <span id="imu-roll" class="stat-value">0.0°</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">IMU Pitch</span>
+                        <span id="imu-pitch" class="stat-value">0.0°</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-title">Active Controls</div>
-            <div id="keys-container">
-                <div id="key-w" class="key-badge">W</div>
-                <div id="key-s" class="key-badge">S</div>
-                <div id="key-a" class="key-badge">A</div>
-                <div id="key-d" class="key-badge">D</div>
-                <div id="key-q" class="key-badge">Q</div>
-                <div id="key-e" class="key-badge">E</div>
-                <div id="key-u" class="key-badge">U</div>
-                <div id="key-j" class="key-badge">J</div>
-                <div id="key-space" class="key-badge" style="width:100%;text-align:center">SPACE (Toggle Mode)</div>
+            <div class="card">
+                <div class="card-title">Active Controls</div>
+                <div id="keys-container">
+                    <div id="key-w" class="key-badge">W</div>
+                    <div id="key-s" class="key-badge">S</div>
+                    <div id="key-a" class="key-badge">A</div>
+                    <div id="key-d" class="key-badge">D</div>
+                    <div id="key-q" class="key-badge">Q</div>
+                    <div id="key-e" class="key-badge">E</div>
+                    <div id="key-u" class="key-badge">U</div>
+                    <div id="key-j" class="key-badge">J</div>
+                    <div id="key-space" class="key-badge" style="width:100%;text-align:center">SPACE (Toggle Mode)</div>
+                </div>
             </div>
-        </div>
 
-        <div class="card" style="flex-grow:1;margin-bottom:0">
-            <div class="card-title">Actuator Output monitor</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Leg</th>
-                        <th>Hip (SW / Servo)</th>
-                        <th>Thigh</th>
-                        <th>Calf</th>
-                    </tr>
-                </thead>
-                <tbody id="telemetry-table-body">
-                    <tr class="leg-row-fr">
-                        <td>FR</td><td id="ang-0-0">0° / 0°</td><td id="ang-0-1">0° / 0°</td><td id="ang-0-2">0° / 0°</td>
-                    </tr>
-                    <tr class="leg-row-fl">
-                        <td>FL</td><td id="ang-1-0">0° / 0°</td><td id="ang-1-1">0° / 0°</td><td id="ang-1-2">0° / 0°</td>
-                    </tr>
-                    <tr class="leg-row-br">
-                        <td>BR</td><td id="ang-2-0">0° / 0°</td><td id="ang-2-1">0° / 0°</td><td id="ang-2-2">0° / 0°</td>
-                    </tr>
-                    <tr class="leg-row-bl">
-                        <td>BL</td><td id="ang-3-0">0° / 0°</td><td id="ang-3-1">0° / 0°</td><td id="ang-3-2">0° / 0°</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <div class="card" style="flex-grow:1;margin-bottom:0">
+                <div class="card-title">Actuator Output monitor</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Leg</th>
+                            <th>Hip (SW / Servo)</th>
+                            <th>Thigh</th>
+                            <th>Calf</th>
+                        </tr>
+                    </thead>
+                    <tbody id="telemetry-table-body">
+                        <tr class="leg-row-fr">
+                            <td>FR</td>
+                            <td id="ang-0-0">0° / 0°</td>
+                            <td id="ang-0-1">0° / 0°</td>
+                            <td id="ang-0-2">0° / 0°</td>
+                        </tr>
+                        <tr class="leg-row-fl">
+                            <td>FL</td>
+                            <td id="ang-1-0">0° / 0°</td>
+                            <td id="ang-1-1">0° / 0°</td>
+                            <td id="ang-1-2">0° / 0°</td>
+                        </tr>
+                        <tr class="leg-row-br">
+                            <td>BR</td>
+                            <td id="ang-2-0">0° / 0°</td>
+                            <td id="ang-2-1">0° / 0°</td>
+                            <td id="ang-2-2">0° / 0°</td>
+                        </tr>
+                        <tr class="leg-row-bl">
+                            <td>BL</td>
+                            <td id="ang-3-0">0° / 0°</td>
+                            <td id="ang-3-1">0° / 0°</td>
+                            <td id="ang-3-2">0° / 0°</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div> <!-- End of dashboard-tab-content -->
 
         <div id="calibration-tab-content" style="display:none">
@@ -301,59 +372,80 @@
                         <option value="2">Back Right (BR)</option>
                         <option value="3">Back Left (BL)</option>
                     </select>
-    
+
                     <label>Height (cm)</label>
-                    <input type="number" id="cal-height" class="calibration-input" value="20" min="10" max="30" step="0.5" oninput="runCalibrationCalc()">
-    
+                    <input type="number" id="cal-height" class="calibration-input" value="20" min="10" max="30"
+                        step="0.5" oninput="runCalibrationCalc()">
+
                     <label></label>
-                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; margin-top:8px; color:var(--accent-blue);">
-                        <input type="checkbox" id="cal-preview-toggle" onchange="toggleCalPreview()"> Preview Pose on Robot
+                    <label
+                        style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; margin-top:8px; color:var(--accent-blue);">
+                        <input type="checkbox" id="cal-preview-toggle" onchange="toggleCalPreview()"> Preview Pose on
+                        Robot
                     </label>
                 </div>
-    
-                <div style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; font-family:'JetBrains Mono', monospace; font-size:11px;">
-                    <div style="color:var(--accent-blue); font-weight:bold; margin-bottom:4px;">3D Target Coordinates:</div>
+
+                <div
+                    style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+                    <div style="color:var(--accent-blue); font-weight:bold; margin-bottom:4px;">3D Target Coordinates:
+                    </div>
                     <div>Hip origin: <span id="cal-coord-hip" style="color:var(--text-color)">--</span></div>
                     <div>Knee joint: <span id="cal-coord-knee" style="color:var(--accent-yellow)">--</span></div>
-                    <div>Paw tip:    <span id="cal-coord-paw" style="color:var(--text-color)">--</span></div>
+                    <div>Paw tip: <span id="cal-coord-paw" style="color:var(--text-color)">--</span></div>
                 </div>
-    
-                <div style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; font-family:'JetBrains Mono', monospace; font-size:11px;">
-                    <div style="color:var(--accent-blue); font-weight:bold; margin-bottom:4px;">Theoretical Software Angles:</div>
-                    <div>Hip Angle:   <span id="cal-ang-hip">--</span>° (Servo: <span id="cal-ang-hip-srv">--</span>°)</div>
-                    <div>Thigh Angle: <span id="cal-ang-thigh">--</span>° (Servo: <span id="cal-ang-thigh-srv">--</span>°)</div>
-                    <div>Calf Angle:  <span id="cal-ang-calf">--</span>° (Servo: <span id="cal-ang-calf-srv">--</span>°)</div>
+
+                <div
+                    style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+                    <div style="color:var(--accent-blue); font-weight:bold; margin-bottom:4px;">Theoretical Software
+                        Angles:</div>
+                    <div>Hip Angle: <span id="cal-ang-hip">--</span>° (Servo: <span id="cal-ang-hip-srv">--</span>°)
+                    </div>
+                    <div>Thigh Angle: <span id="cal-ang-thigh">--</span>° (Servo: <span
+                            id="cal-ang-thigh-srv">--</span>°)</div>
+                    <div>Calf Angle: <span id="cal-ang-calf">--</span>° (Servo: <span id="cal-ang-calf-srv">--</span>°)
+                    </div>
                 </div>
-    
+
                 <div style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:600; margin-bottom:8px;">Tune Calibration Offsets:</div>
-                    
+                    <div
+                        style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:600; margin-bottom:8px;">
+                        Tune Calibration Offsets:</div>
+
                     <div style="display:flex; flex-direction:column; gap:8px;">
                         <div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+                            <div
+                                style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
                                 <span>Hip Offset</span>
-                                <span><span id="offset-val-hip" style="color:var(--accent-blue)">0</span>° (Servo: <span id="srv-val-hip">--</span>°)</span>
+                                <span><span id="offset-val-hip" style="color:var(--accent-blue)">0</span>° (Servo: <span
+                                        id="srv-val-hip">--</span>°)</span>
                             </div>
-                            <input type="range" id="slide-offset-hip" min="-45" max="45" step="0.5" value="0" style="width:100%; accent-color:var(--accent-blue)" oninput="tuneOffsets()">
+                            <input type="range" id="slide-offset-hip" min="-45" max="45" step="0.5" value="0"
+                                style="width:100%; accent-color:var(--accent-blue)" oninput="tuneOffsets()">
                         </div>
-    
+
                         <div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+                            <div
+                                style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
                                 <span>Thigh Offset</span>
-                                <span><span id="offset-val-thigh" style="color:var(--accent-blue)">0</span>° (Servo: <span id="srv-val-thigh">--</span>°)</span>
+                                <span><span id="offset-val-thigh" style="color:var(--accent-blue)">0</span>° (Servo:
+                                    <span id="srv-val-thigh">--</span>°)</span>
                             </div>
-                            <input type="range" id="slide-offset-thigh" min="-45" max="45" step="0.5" value="0" style="width:100%; accent-color:var(--accent-blue)" oninput="tuneOffsets()">
+                            <input type="range" id="slide-offset-thigh" min="-45" max="45" step="0.5" value="0"
+                                style="width:100%; accent-color:var(--accent-blue)" oninput="tuneOffsets()">
                         </div>
-    
+
                         <div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+                            <div
+                                style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
                                 <span>Calf Offset</span>
-                                <span><span id="offset-val-calf" style="color:var(--accent-blue)">0</span>° (Servo: <span id="srv-val-calf">--</span>°)</span>
+                                <span><span id="offset-val-calf" style="color:var(--accent-blue)">0</span>° (Servo:
+                                    <span id="srv-val-calf">--</span>°)</span>
                             </div>
-                            <input type="range" id="slide-offset-calf" min="-45" max="45" step="0.5" value="0" style="width:100%; accent-color:var(--accent-blue)" oninput="tuneOffsets()">
+                            <input type="range" id="slide-offset-calf" min="-45" max="45" step="0.5" value="0"
+                                style="width:100%; accent-color:var(--accent-blue)" oninput="tuneOffsets()">
                         </div>
                     </div>
-    
+
                     <button class="btn-primary" onclick="saveOffsets()">Save Offsets to Robot</button>
                 </div>
             </div>
@@ -362,22 +454,30 @@
         <div id="raw-tab-content" style="display:none">
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <span style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); font-weight:600;">Manual Motor Control</span>
+                    <span
+                        style="font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted); font-weight:600;">Manual
+                        Motor Control</span>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button id="btn-assembly" style="background:var(--accent-purple); color:#000; border:none; border-radius:6px; padding:4px 10px; font-family:'Inter', sans-serif; font-size:11px; font-weight:700; cursor:pointer; box-shadow:0 0 10px rgba(168, 85, 247, 0.4); transition:all 0.2s;">Assembly Mode</button>
-                        <button id="btn-limp" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.5); border-radius:6px; padding:4px 10px; font-family:'Inter', sans-serif; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">Limp Servos</button>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11px; text-transform:none; color:var(--accent-blue);">
+                        <button id="btn-assembly"
+                            style="background:var(--accent-purple); color:#000; border:none; border-radius:6px; padding:4px 10px; font-family:'Inter', sans-serif; font-size:11px; font-weight:700; cursor:pointer; box-shadow:0 0 10px rgba(168, 85, 247, 0.4); transition:all 0.2s;">Assembly
+                            Mode</button>
+                        <button id="btn-limp"
+                            style="background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.5); border-radius:6px; padding:4px 10px; font-family:'Inter', sans-serif; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">Limp
+                            Servos</button>
+                        <label
+                            style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11px; text-transform:none; color:var(--accent-blue);">
                             <input type="checkbox" id="override-toggle"> Enable Override
                         </label>
                     </div>
                 </div>
-                <div id="sliders-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; transition:opacity 0.2s;">
+                <div id="sliders-grid"
+                    style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; transition:opacity 0.2s;">
                     <!-- Sliders generated dynamically by JS -->
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div id="canvas-container">
         <div id="overlay-controls">
             <div class="control-item"><span>Left Click + Drag</span> to rotate view</div>
@@ -401,13 +501,13 @@
                 container.style.display = 'flex';
                 container.style.flexDirection = 'column';
                 container.style.gap = '2px';
-                
+
                 const header = document.createElement('div');
                 header.style.display = 'flex';
                 header.style.justifyContent = 'space-between';
                 header.style.fontSize = '10px';
                 header.style.color = 'var(--text-muted)';
-                
+
                 let minVal = '0', maxVal = '180', defaultVal = '90';
                 if (jointIdx === 0) { // Hip
                     minVal = '-25'; maxVal = '25'; defaultVal = '0';
@@ -416,9 +516,9 @@
                 } else { // Calf
                     minVal = '-80'; maxVal = '80'; defaultVal = '0';
                 }
-                
+
                 header.innerHTML = `<span>${leg} ${joint}</span><span id="slider-val-${idx}">${defaultVal}°</span>`;
-                
+
                 const slider = document.createElement('input');
                 slider.type = 'range';
                 slider.min = minVal;
@@ -427,14 +527,14 @@
                 slider.id = `slider-${idx}`;
                 slider.style.width = '100%';
                 slider.style.accentColor = 'var(--accent-blue)';
-                
+
                 slider.oninput = (e) => {
                     const val = parseInt(e.target.value);
                     document.getElementById(`slider-val-${idx}`).innerText = val + '°';
                     localOverrideAngles[idx] = val;
                     sendControlUpdate();
                 };
-                
+
                 container.appendChild(header);
                 container.appendChild(slider);
                 grid.appendChild(container);
@@ -453,7 +553,7 @@
             overrideToggle.checked = true;
             grid.style.opacity = '1';
             grid.style.pointerEvents = 'auto';
-            
+
             const assemblyAngles = [0, 60, -20, 0, 60, -20, 0, 60, -20, 0, 60, -20];
             for (let idx = 0; idx < 12; idx++) {
                 const slider = document.getElementById(`slider-${idx}`);
@@ -506,7 +606,7 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI/2 - 0.01; // Don't go below ground
+        controls.maxPolarAngle = Math.PI / 2 - 0.01; // Don't go below ground
 
         // Add Grid
         const gridHelper = new THREE.GridHelper(10, 100, 0x1f2937, 0x111827);
@@ -523,7 +623,7 @@
 
         // Robot Root Container (for IMU rotations)
         const robotContainer = new THREE.Group();
-        robotContainer.position.y = 0.0; 
+        robotContainer.position.y = 0.0;
         scene.add(robotContainer);
 
         // Dimensions matching config
@@ -536,9 +636,9 @@
         // Hip attachments
         const shoulderOffsets = [
             { side: -1, x: LEG_FB, y: -LEG_LR, color: 0x10b981, label: "FR" }, // FR
-            { side: 1,  x: LEG_FB, y: LEG_LR,  color: 0xa855f7, label: "FL" }, // FL
+            { side: 1, x: LEG_FB, y: LEG_LR, color: 0xa855f7, label: "FL" }, // FL
             { side: -1, x: -LEG_FB, y: -LEG_LR, color: 0xf59e0b, label: "BR" }, // BR
-            { side: 1,  x: -LEG_FB, y: LEG_LR,  color: 0xec4899, label: "BL" }  // BL
+            { side: 1, x: -LEG_FB, y: LEG_LR, color: 0xec4899, label: "BL" }  // BL
         ];
 
         // Helper to draw text labels on torso sides
@@ -547,23 +647,23 @@
             canvas.width = 256;
             canvas.height = 128;
             const ctx = canvas.getContext('2d');
-            
+
             // Fill background with semi-transparent color
             ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw border
             ctx.strokeStyle = '#38bdf8';
             ctx.lineWidth = 4;
             ctx.strokeRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw text
             ctx.fillStyle = textColor;
             ctx.font = 'bold 36px "JetBrains Mono", "Consolas", monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-            
+
             const texture = new THREE.CanvasTexture(canvas);
             return new THREE.MeshPhongMaterial({
                 map: texture,
@@ -596,7 +696,7 @@
         const legs = [];
         shoulderOffsets.forEach((cfg) => {
             const legGroup = new THREE.Group();
-            
+
             // Link lines
             const material = new THREE.LineBasicMaterial({ color: cfg.color, linewidth: 4 });
             const geometry = new THREE.BufferGeometry();
@@ -614,15 +714,15 @@
             robotContainer.add(legGroup);
             legs.push({ line, foot: footMesh, cfg });
         });
-        
+
         // Calibration Target Markers in 3D Scene
         const markerGeom = new THREE.SphereGeometry(0.015, 16, 16);
         const kneeMarkerMat = new THREE.MeshPhongMaterial({ color: 0xf59e0b, emissive: 0xf59e0b, emissiveIntensity: 0.5 });
         const pawMarkerMat = new THREE.MeshPhongMaterial({ color: 0x38bdf8, emissive: 0x38bdf8, emissiveIntensity: 0.5 });
-        
+
         const calKneeMarker = new THREE.Mesh(markerGeom, kneeMarkerMat);
         const calPawMarker = new THREE.Mesh(markerGeom, pawMarkerMat);
-        
+
         scene.add(calKneeMarker);
         scene.add(calPawMarker);
         calKneeMarker.visible = false;
@@ -654,7 +754,7 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, 64, 32);
-            
+
             const texture = new THREE.CanvasTexture(canvas);
             const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
             const sprite = new THREE.Sprite(material);
@@ -667,35 +767,35 @@
         scene.add(axesGroup);
 
         // Forward (+X in robot frame, +Z in Three.js)
-        const arrowX = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0,0,0), 0.08, 0x38bdf8, 0.02, 0.015);
+        const arrowX = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), 0.08, 0x38bdf8, 0.02, 0.015);
         axesGroup.add(arrowX);
         const labelX = createTextSprite("+X (FWD)", "#38bdf8");
         labelX.position.set(0, 0.02, 0.1);
         axesGroup.add(labelX);
 
         // Backward (-X in robot frame, -Z in Three.js)
-        const arrowXBack = new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0,0,0), 0.08, 0xef4444, 0.02, 0.015);
+        const arrowXBack = new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0), 0.08, 0xef4444, 0.02, 0.015);
         axesGroup.add(arrowXBack);
         const labelXBack = createTextSprite("-X (BACK)", "#ef4444");
         labelXBack.position.set(0, 0.02, -0.1);
         axesGroup.add(labelXBack);
 
         // Left (+Y in robot frame, +X in Three.js)
-        const arrowY = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0,0,0), 0.08, 0xa855f7, 0.02, 0.015);
+        const arrowY = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 0.08, 0xa855f7, 0.02, 0.015);
         axesGroup.add(arrowY);
         const labelY = createTextSprite("+Y (LEFT)", "#a855f7");
         labelY.position.set(0.1, 0.02, 0);
         axesGroup.add(labelY);
 
         // Right (-Y in robot frame, -X in Three.js)
-        const arrowYRight = new THREE.ArrowHelper(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0,0,0), 0.08, 0x10b981, 0.02, 0.015);
+        const arrowYRight = new THREE.ArrowHelper(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 0), 0.08, 0x10b981, 0.02, 0.015);
         axesGroup.add(arrowYRight);
         const labelYRight = createTextSprite("-Y (RIGHT)", "#10b981");
         labelYRight.position.set(-0.1, 0.02, 0);
         axesGroup.add(labelYRight);
 
         // Up (+Z in robot frame, +Y in Three.js)
-        const arrowZ = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0,0,0), 0.08, 0xf59e0b, 0.02, 0.015);
+        const arrowZ = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 0.08, 0xf59e0b, 0.02, 0.015);
         axesGroup.add(arrowZ);
         const labelZ = createTextSprite("+Z (UP)", "#f59e0b");
         labelZ.position.set(0, 0.1, 0);
@@ -711,7 +811,7 @@
 
             legs.forEach((leg, i) => {
                 const cfg = leg.cfg;
-                
+
                 // Fetch joint angles
                 const theta_hip = cfg.side * jointAngles[0][i];
                 const theta_upper = jointAngles[1][i];
@@ -742,7 +842,7 @@
                 // Update line buffer geometry mapping:
                 // Three_X = Robot_Y, Three_Y = Robot_Z, Three_Z = Robot_X
                 const positions = leg.line.geometry.attributes.position.array;
-                
+
                 // Point 0: Shoulder mount
                 positions[0] = cfg.y; positions[1] = 0; positions[2] = cfg.x;
                 // Point 1: Hip joint end
@@ -762,7 +862,7 @@
         const evSource = new EventSource('/stream');
         evSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            
+
             if (!initialTabChecked) {
                 initialTabChecked = true;
                 if (data.calibration_active) {
@@ -774,11 +874,11 @@
                     switchTab('raw');
                 }
             }
-            
+
             // Update UI dashboard labels
             document.getElementById('behavior-mode').innerText = data.behavior_state;
             document.getElementById('height-val').innerText = (data.height * 100).toFixed(1);
-            
+
             // Dynamic Limp button style & label
             const btnLimp = document.getElementById('btn-limp');
             if (data.limp) {
@@ -794,7 +894,7 @@
                 btnLimp.style.boxShadow = 'none';
                 btnLimp.innerText = 'Limp Servos';
             }
-            
+
             const roll_deg = (data.imu[2] * 180 / Math.PI).toFixed(1);
             const pitch_deg = (data.imu[1] * 180 / Math.PI).toFixed(1);
             document.getElementById('imu-roll').innerText = roll_deg + '°';
@@ -838,13 +938,13 @@
                     grid.style.opacity = data.manual_override ? '1' : '0.5';
                     grid.style.pointerEvents = data.manual_override ? 'auto' : 'none';
                 }
-                
-                const syncAngles = data.manual_override ? data.override_angles : 
-                                  [data.software_angles[0][0], data.software_angles[1][0], data.software_angles[2][0],
-                                   data.software_angles[0][1], data.software_angles[1][1], data.software_angles[2][1],
-                                   data.software_angles[0][2], data.software_angles[1][2], data.software_angles[2][2],
-                                   data.software_angles[0][3], data.software_angles[1][3], data.software_angles[2][3]];
-                
+
+                const syncAngles = data.manual_override ? data.override_angles :
+                    [data.software_angles[0][0], data.software_angles[1][0], data.software_angles[2][0],
+                    data.software_angles[0][1], data.software_angles[1][1], data.software_angles[2][1],
+                    data.software_angles[0][2], data.software_angles[1][2], data.software_angles[2][2],
+                    data.software_angles[0][3], data.software_angles[1][3], data.software_angles[2][3]];
+
                 if (syncAngles) {
                     for (let idx = 0; idx < 12; idx++) {
                         const slider = document.getElementById(`slider-${idx}`);
@@ -882,7 +982,7 @@
         function runCalibrationCalc() {
             const legIdx = document.getElementById('cal-leg').value;
             const height = document.getElementById('cal-height').value || 20.0;
-            
+
             if (document.getElementById('calibration-tab-content').style.display !== 'none') {
                 fetch('/api/calibration/mode', {
                     method: 'POST',
@@ -896,51 +996,51 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ leg_index: parseInt(legIdx), height: parseFloat(height) })
             })
-            .then(res => res.json())
-            .then(data => {
-                currentCalData = data;
-                
-                // Update coordinate text
-                document.getElementById('cal-coord-hip').innerText = `(${ (data.hip_origin[0]*100).toFixed(2) }, ${ (data.hip_origin[1]*100).toFixed(2) }, ${ (data.hip_origin[2]*100).toFixed(2) }) cm`;
-                document.getElementById('cal-coord-knee').innerText = `(${ (data.knee[0]*100).toFixed(2) }, ${ (data.knee[1]*100).toFixed(2) }, ${ (data.knee[2]*100).toFixed(2) }) cm`;
-                document.getElementById('cal-coord-paw').innerText = `(${ (data.paw[0]*100).toFixed(2) }, ${ (data.paw[1]*100).toFixed(2) }, ${ (data.paw[2]*100).toFixed(2) }) cm`;
-                
-                // Update theoretical angles
-                document.getElementById('cal-ang-hip').innerText = data.angles.hip_phys.toFixed(2);
-                document.getElementById('cal-ang-hip-srv').innerText = data.angles.hip_servo.toFixed(2);
-                document.getElementById('cal-ang-thigh').innerText = data.angles.thigh_phys.toFixed(2);
-                document.getElementById('cal-ang-thigh-srv').innerText = data.angles.thigh_servo.toFixed(2);
-                document.getElementById('cal-ang-calf').innerText = data.angles.calf_phys.toFixed(2);
-                document.getElementById('cal-ang-calf-srv').innerText = data.angles.calf_servo.toFixed(2);
-                
-                // Update Three.js Markers
-                calKneeMarker.position.set(data.knee[1], data.knee[2], data.knee[0]);
-                calPawMarker.position.set(data.paw[1], data.paw[2], data.paw[0]);
-                calKneeMarker.visible = true;
-                calPawMarker.visible = true;
+                .then(res => res.json())
+                .then(data => {
+                    currentCalData = data;
 
-                // Update Target Leg Line positions (Hip -> Knee -> Paw)
-                const pos = calTargetLegLine.geometry.attributes.position.array;
-                pos[0] = data.hip_origin[1]; pos[1] = data.hip_origin[2]; pos[2] = data.hip_origin[0];
-                pos[3] = data.knee[1];       pos[4] = data.knee[2];       pos[5] = data.knee[0];
-                pos[6] = data.paw[1];        pos[7] = data.paw[2];        pos[8] = data.paw[0];
-                calTargetLegLine.geometry.attributes.position.needsUpdate = true;
-                calTargetLegLine.computeLineDistances();
-                calTargetLegLine.visible = true;
+                    // Update coordinate text
+                    document.getElementById('cal-coord-hip').innerText = `(${(data.hip_origin[0] * 100).toFixed(2)}, ${(data.hip_origin[1] * 100).toFixed(2)}, ${(data.hip_origin[2] * 100).toFixed(2)}) cm`;
+                    document.getElementById('cal-coord-knee').innerText = `(${(data.knee[0] * 100).toFixed(2)}, ${(data.knee[1] * 100).toFixed(2)}, ${(data.knee[2] * 100).toFixed(2)}) cm`;
+                    document.getElementById('cal-coord-paw').innerText = `(${(data.paw[0] * 100).toFixed(2)}, ${(data.paw[1] * 100).toFixed(2)}, ${(data.paw[2] * 100).toFixed(2)}) cm`;
 
-                // Load existing offsets into tuning sliders
-                document.getElementById('slide-offset-hip').value = data.offsets[0];
-                document.getElementById('slide-offset-thigh').value = data.offsets[1];
-                document.getElementById('slide-offset-calf').value = data.offsets[2];
-                
-                // Update slider calculations display
-                tuneOffsets();
+                    // Update theoretical angles
+                    document.getElementById('cal-ang-hip').innerText = data.angles.hip_phys.toFixed(2);
+                    document.getElementById('cal-ang-hip-srv').innerText = data.angles.hip_servo.toFixed(2);
+                    document.getElementById('cal-ang-thigh').innerText = data.angles.thigh_phys.toFixed(2);
+                    document.getElementById('cal-ang-thigh-srv').innerText = data.angles.thigh_servo.toFixed(2);
+                    document.getElementById('cal-ang-calf').innerText = data.angles.calf_phys.toFixed(2);
+                    document.getElementById('cal-ang-calf-srv').innerText = data.angles.calf_servo.toFixed(2);
 
-                if (document.getElementById('cal-preview-toggle').checked) {
-                    toggleCalPreview();
-                }
-            })
-            .catch(err => console.error("Error loading calibration data:", err));
+                    // Update Three.js Markers
+                    calKneeMarker.position.set(data.knee[1], data.knee[2], data.knee[0]);
+                    calPawMarker.position.set(data.paw[1], data.paw[2], data.paw[0]);
+                    calKneeMarker.visible = true;
+                    calPawMarker.visible = true;
+
+                    // Update Target Leg Line positions (Hip -> Knee -> Paw)
+                    const pos = calTargetLegLine.geometry.attributes.position.array;
+                    pos[0] = data.hip_origin[1]; pos[1] = data.hip_origin[2]; pos[2] = data.hip_origin[0];
+                    pos[3] = data.knee[1]; pos[4] = data.knee[2]; pos[5] = data.knee[0];
+                    pos[6] = data.paw[1]; pos[7] = data.paw[2]; pos[8] = data.paw[0];
+                    calTargetLegLine.geometry.attributes.position.needsUpdate = true;
+                    calTargetLegLine.computeLineDistances();
+                    calTargetLegLine.visible = true;
+
+                    // Load existing offsets into tuning sliders
+                    document.getElementById('slide-offset-hip').value = data.offsets[0];
+                    document.getElementById('slide-offset-thigh').value = data.offsets[1];
+                    document.getElementById('slide-offset-calf').value = data.offsets[2];
+
+                    // Update slider calculations display
+                    tuneOffsets();
+
+                    if (document.getElementById('cal-preview-toggle').checked) {
+                        toggleCalPreview();
+                    }
+                })
+                .catch(err => console.error("Error loading calibration data:", err));
         }
 
         function toggleCalPreview() {
@@ -953,17 +1053,17 @@
                 }).catch(err => console.error("Error disabling preview:", err));
                 return;
             }
-            
+
             if (!currentCalData) return;
-            
+
             const legIdx = parseInt(document.getElementById('cal-leg').value);
             const srv = currentCalData.angles;
-            
+
             const angles = [0, 90, 0, 0, 90, 0, 0, 90, 0, 0, 90, 0];
             angles[legIdx * 3] = srv.hip_phys;
             angles[legIdx * 3 + 1] = srv.thigh_phys;
             angles[legIdx * 3 + 2] = srv.calf_phys;
-            
+
             fetch('/api/control', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -976,28 +1076,28 @@
 
         function tuneOffsets() {
             if (!currentCalData) return;
-            
+
             const offHip = parseFloat(document.getElementById('slide-offset-hip').value);
             const offThigh = parseFloat(document.getElementById('slide-offset-thigh').value);
             const offCalf = parseFloat(document.getElementById('slide-offset-calf').value);
-            
+
             computedOffsets = [offHip, offThigh, offCalf];
-            
+
             document.getElementById('offset-val-hip').innerText = (offHip >= 0 ? '+' : '') + offHip.toFixed(1);
             document.getElementById('offset-val-thigh').innerText = (offThigh >= 0 ? '+' : '') + offThigh.toFixed(1);
             document.getElementById('offset-val-calf').innerText = (offCalf >= 0 ? '+' : '') + offCalf.toFixed(1);
-            
+
             const inv = currentCalData.inversions;
             const srv = currentCalData.angles;
-            
+
             const srvHip = inv[0] ? (180.0 - (srv.hip_servo + offHip)) : (srv.hip_servo + offHip);
             const srvThigh = inv[1] ? (180.0 - (srv.thigh_servo + offThigh)) : (srv.thigh_servo + offThigh);
             const srvCalf = inv[2] ? (180.0 - (srv.calf_servo + offCalf)) : (srv.calf_servo + offCalf);
-            
+
             document.getElementById('srv-val-hip').innerText = Math.round(srvHip);
             document.getElementById('srv-val-thigh').innerText = Math.round(srvThigh);
             document.getElementById('srv-val-calf').innerText = Math.round(srvCalf);
-            
+
             const legIdx = document.getElementById('cal-leg').value;
             fetch('/api/calibration/tune', {
                 method: 'POST',
@@ -1013,12 +1113,12 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ leg_index: parseInt(legIdx), offsets: computedOffsets })
             })
-            .then(res => res.json())
-            .then(data => {
-                alert("Calibration offsets successfully saved and reloaded!");
-                runCalibrationCalc();
-            })
-            .catch(err => console.error("Error saving offsets:", err));
+                .then(res => res.json())
+                .then(data => {
+                    alert("Calibration offsets successfully saved and reloaded!");
+                    runCalibrationCalc();
+                })
+                .catch(err => console.error("Error saving offsets:", err));
         }
 
         function switchTab(tabName) {
@@ -1028,22 +1128,22 @@
             const contentDash = document.getElementById('dashboard-tab-content');
             const contentCal = document.getElementById('calibration-tab-content');
             const contentRaw = document.getElementById('raw-tab-content');
-            
+
             btnDash.classList.remove('active');
             btnCal.classList.remove('active');
             btnRaw.classList.remove('active');
             contentDash.style.display = 'none';
             contentCal.style.display = 'none';
             contentRaw.style.display = 'none';
-            
+
             if (tabName === 'cal') {
                 btnCal.classList.add('active');
                 contentCal.style.display = 'block';
-                
+
                 // Disable manual override
                 overrideToggle.checked = false;
                 sendControlUpdate();
-                
+
                 // Set backend calibration active mode
                 const legIdx = document.getElementById('cal-leg').value;
                 fetch('/api/calibration/mode', {
@@ -1051,46 +1151,46 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ active: true, leg_index: parseInt(legIdx) })
                 })
-                .then(() => runCalibrationCalc())
-                .catch(err => console.error("Error setting calibration mode:", err));
+                    .then(() => runCalibrationCalc())
+                    .catch(err => console.error("Error setting calibration mode:", err));
             } else if (tabName === 'raw') {
                 btnRaw.classList.add('active');
                 contentRaw.style.display = 'block';
-                
+
                 // Hide target lines and markers
                 calTargetLegLine.visible = false;
                 calKneeMarker.visible = false;
                 calPawMarker.visible = false;
-                
+
                 // Turn off backend calibration mode
                 fetch('/api/calibration/mode', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ active: false })
                 }).catch(err => console.error("Error disabling calibration mode:", err));
-                
+
                 // Enable manual override mode
                 overrideToggle.checked = true;
                 sendControlUpdate();
             } else {
                 btnDash.classList.add('active');
                 contentDash.style.display = 'block';
-                
+
                 // Hide target lines and markers
                 calTargetLegLine.visible = false;
                 calKneeMarker.visible = false;
                 calPawMarker.visible = false;
-                
+
                 // Turn off backend calibration mode
                 document.getElementById('cal-preview-toggle').checked = false;
                 toggleCalPreview(); // Disable preview
-                
+
                 fetch('/api/calibration/mode', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ active: false })
                 }).catch(err => console.error("Error disabling calibration mode:", err));
-                
+
                 // Disable manual override mode
                 overrideToggle.checked = false;
                 sendControlUpdate();
@@ -1109,4 +1209,5 @@
         animate();
     </script>
 </body>
+
 </html>

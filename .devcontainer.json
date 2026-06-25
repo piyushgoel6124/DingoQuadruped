@@ -1,11 +1,11 @@
 {
-    "name": "dingoquadruped",
-    "service": "dingoquadruped",
+    "name": "robodogquadruped",
+    "service": "robodogquadruped",
     "dockerComposeFile": "./Docker-compose.yaml",
     "extensions": [
         "ms-iot.vscode-ros"
     ],
-    "workspaceFolder": "/dingo_ws",
+    "workspaceFolder": "/robodog_ws",
     "shutdownAction": "stopCompose",
     "overrideCommand": true
 }

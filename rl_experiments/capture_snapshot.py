@@ -2,15 +2,15 @@ import os
 import mujoco
 import numpy as np
 from PIL import Image
-from dingo_mujoco_env import DingoMujocoEnv
+from robodog_mujoco_env import RoboDogMujocoEnv
 from stable_baselines3 import PPO
 
 def capture():
     # 1. Instantiate env
-    env = DingoMujocoEnv()
+    env = RoboDogMujocoEnv()
     
     # 2. Load model
-    model_path = "dingo_ppo_mujoco"
+    model_path = "robodog_ppo_mujoco"
     if os.path.exists(f"{model_path}.zip"):
         model = PPO.load(model_path)
         print("Loaded trained model for snapshot.")
@@ -49,7 +49,7 @@ def capture():
     
     # Save image to the artifacts directory so the agent/user can view it
     artifact_dir = r"C:\Users\piyus\.gemini\antigravity-ide\brain\bf7daf70-c8c7-4973-9b0e-e329045fb07a"
-    output_path = os.path.join(artifact_dir, "dingo_snapshot.png")
+    output_path = os.path.join(artifact_dir, "robodog_snapshot.png")
     
     img = Image.fromarray(pixels)
     img.save(output_path)

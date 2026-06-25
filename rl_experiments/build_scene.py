@@ -1,8 +1,8 @@
 import xml.etree.ElementTree as ET
 
 def main():
-    # Load dingo_robot_mjcf.xml
-    tree = ET.parse("dingo_robot_mjcf.xml")
+    # Load robodog_robot_mjcf.xml
+    tree = ET.parse("robodog_robot_mjcf.xml")
     root = tree.getroot()
     
     # 1. Update options and structure
@@ -58,9 +58,9 @@ def main():
         
     root.append(actuator)
     
-    # Save output to dingo_scene.xml
-    tree.write("dingo_scene.xml", encoding="utf-8", xml_declaration=True)
-    print("Successfully built dingo_scene.xml with actuators and floor!")
+    # Save output to robodog_scene.xml
+    tree.write("robodog_scene.xml", encoding="utf-8", xml_declaration=True)
+    print("Successfully built robodog_scene.xml with actuators and floor!")
 
 if __name__ == "__main__":
     main()

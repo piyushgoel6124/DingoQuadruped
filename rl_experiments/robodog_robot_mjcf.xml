@@ -1,0 +1,114 @@
+<mujoco model="robodog">
+  <compiler angle="radian" meshdir="d:/vscode/RoboDogQuadruped/robodog_ws/src/robodog_description/meshes/"/>
+
+  <asset>
+    <mesh name="base_collision" content_type="model/stl" file="base_collision.STL"/>
+    <mesh name="L_link1_collision" content_type="model/stl" file="L_link1_collision.STL"/>
+    <mesh name="L_link2_collision" content_type="model/stl" file="L_link2_collision.STL"/>
+    <mesh name="L_link3_collision" content_type="model/stl" file="L_link3_collision.STL"/>
+    <mesh name="link4_collision" content_type="model/stl" file="link4_collision.STL"/>
+    <mesh name="R_link1_collision" content_type="model/stl" file="R_link1_collision.STL"/>
+    <mesh name="R_link2_collision" content_type="model/stl" file="R_link2_collision.STL"/>
+    <mesh name="R_link3_collision" content_type="model/stl" file="R_link3_collision.STL"/>
+  </asset>
+
+  <worldbody>
+    <body name="base_link">
+      <inertial pos="0 0 0" quat="0.500945 0.499153 -0.500798 0.4991" mass="0.81776" diaginertia="0.00063853 0.000584744 0.000296986"/>
+      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="base_collision"/>
+      <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="base_collision"/>
+      <body name="FL_link1" pos="0.11165 0.061 -0.0144" quat="0.499998 0.5 0.500002 0.5">
+        <inertial pos="0 0 0" mass="0.3" diaginertia="0.000193 0.0001489 0.0001241"/>
+        <joint name="FL_theta1" pos="0 0 0" axis="0 0 1" range="-0.785398 0.785398" actuatorfrcrange="-10 10"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="L_link1_collision"/>
+        <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="L_link1_collision"/>
+        <body name="FL_link2" pos="0.0496 0.0144 0" quat="2.27212e-07 0.707107 -2.27212e-07 -0.707107">
+          <inertial pos="0 0 0" quat="0 0.716343 0 0.697748" mass="0.1" diaginertia="0.000175797 0.0001726 6.88321e-06"/>
+          <joint name="FL_theta2" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="L_link2_collision"/>
+          <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="L_link2_collision"/>
+          <body name="FL_link3" pos="0.13 0 0" quat="0.707107 0 0 0.707107">
+            <inertial pos="0 0 0" quat="0.493422 0.470029 0.520184 0.514797" mass="0.1" diaginertia="0.000198449 0.000197073 8.32752e-06"/>
+            <joint name="FL_theta3" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="L_link3_collision"/>
+            <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="L_link3_collision"/>
+            <body name="FL_link4" pos="0.138137 0 0">
+              <inertial pos="0 0 0" quat="0.931054 0 0 -0.364882" mass="0.02" diaginertia="7.20384e-07 4.59616e-07 4.5e-07"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+              <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="FR_link1" pos="0.11165 -0.061 -0.0144" quat="0.5 0.5 0.5 0.5">
+        <inertial pos="0 0 0" mass="0.3" diaginertia="0.000193 0.0001489 0.0001241"/>
+        <joint name="FR_theta1" pos="0 0 0" axis="0 0 -1" range="-0.785398 0.785398" actuatorfrcrange="-10 10"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="R_link1_collision"/>
+        <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="R_link1_collision"/>
+        <body name="FR_link2" pos="-0.0496 0.0144 0" quat="2.14261e-07 0.707107 -2.14261e-07 -0.707107">
+          <inertial pos="0 0 0" quat="0 0.716343 0 0.697748" mass="0.1" diaginertia="0.000175797 0.0001726 6.88321e-06"/>
+          <joint name="FR_theta2" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="R_link2_collision"/>
+          <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="R_link2_collision"/>
+          <body name="FR_link3" pos="0.13 0 0" quat="0.707107 0 0 0.707107">
+            <inertial pos="0 0 0" quat="0.493422 0.470029 0.520184 0.514797" mass="0.1" diaginertia="0.000198449 0.000197073 8.32752e-06"/>
+            <joint name="FR_theta3" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="R_link3_collision"/>
+            <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="R_link3_collision"/>
+            <body name="FR_link4" pos="0.138137 0 0">
+              <inertial pos="0 0 0" quat="0.931054 0 0 -0.364882" mass="0.02" diaginertia="7.20384e-07 4.59616e-07 4.5e-07"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+              <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="RL_link1" pos="-0.11165 0.061 -0.0144" quat="0.499998 0.5 0.500002 0.5">
+        <inertial pos="0 0 0" mass="0.3" diaginertia="0.000193 0.0001489 0.0001241"/>
+        <joint name="RL_theta1" pos="0 0 0" axis="0 0 1" range="-0.785398 0.785398" actuatorfrcrange="-10 10"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="L_link1_collision"/>
+        <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="L_link1_collision"/>
+        <body name="RL_link2" pos="0.0496 0.0144 0" quat="2.27212e-07 0.707107 -2.27212e-07 -0.707107">
+          <inertial pos="0 0 0" quat="0 0.716343 0 0.697748" mass="0.1" diaginertia="0.000175797 0.0001726 6.88321e-06"/>
+          <joint name="RL_theta2" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="L_link2_collision"/>
+          <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="L_link2_collision"/>
+          <body name="RL_link3" pos="0.13 0 0" quat="0.707107 0 0 0.707107">
+            <inertial pos="0 0 0" quat="0.493422 0.470029 0.520184 0.514797" mass="0.1" diaginertia="0.000198449 0.000197073 8.32752e-06"/>
+            <joint name="RL_theta3" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="L_link3_collision"/>
+            <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="L_link3_collision"/>
+            <body name="RL_link4" pos="0.138137 0 0">
+              <inertial pos="0 0 0" quat="0.931054 0 0 -0.364882" mass="0.02" diaginertia="7.20384e-07 4.59616e-07 4.5e-07"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+              <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="RR_link1" pos="-0.11165 -0.061 -0.0144" quat="0.5 0.5 0.5 0.5">
+        <inertial pos="0 0 0" mass="0.3" diaginertia="0.000193 0.0001489 0.0001241"/>
+        <joint name="RR_theta1" pos="0 0 0" axis="0 0 -1" range="-0.785398 0.785398" actuatorfrcrange="-10 10"/>
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="R_link1_collision"/>
+        <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="R_link1_collision"/>
+        <body name="RR_link2" pos="-0.0496 0.0144 0" quat="2.14261e-07 0.707107 -2.14261e-07 -0.707107">
+          <inertial pos="0 0 0" quat="0 0.716343 0 0.697748" mass="0.1" diaginertia="0.000175797 0.0001726 6.88321e-06"/>
+          <joint name="RR_theta2" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="R_link2_collision"/>
+          <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="R_link2_collision"/>
+          <body name="RR_link3" pos="0.13 0 0" quat="0.707107 0 0 0.707107">
+            <inertial pos="0 0 0" quat="0.493422 0.470029 0.520184 0.514797" mass="0.1" diaginertia="0.000198449 0.000197073 8.32752e-06"/>
+            <joint name="RR_theta3" pos="0 0 0" axis="0 0 1" range="-3 3" actuatorfrcrange="-10 10"/>
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="R_link3_collision"/>
+            <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="R_link3_collision"/>
+            <body name="RR_link4" pos="0.138137 0 0">
+              <inertial pos="0 0 0" quat="0.931054 0 0 -0.364882" mass="0.02" diaginertia="7.20384e-07 4.59616e-07 4.5e-07"/>
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+              <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="link4_collision"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

@@ -28,10 +28,10 @@ This site explains how the LCD launch file can be called at startup using the ro
 This can be enabled using:
 
 ```python
-rosrun robot_upstart install dingo_peripheral_interfacing/launch/LCD_service.launch --job LCD_ros --symlink
+rosrun robot_upstart install robodog_peripheral_interfacing/launch/LCD_service.launch --job LCD_ros --symlink
 ```
 
-In the line above, `dingo_peripheral_interfacing` is the package, `LCD_service.launch` is the launch file and `LCD_ros`is the new job name that automates the launch file being called at startup. 
+In the line above, `robodog_peripheral_interfacing` is the package, `LCD_service.launch` is the launch file and `LCD_ros`is the new job name that automates the launch file being called at startup. 
 
 The `--symlink` creates a symbolic link from the launch file to the film in systemctl so that any changes to the original file will update. 
 
@@ -46,25 +46,25 @@ sudo systemctl daemon-reload && sudo systemctl start LCD_ros
 If it doesn’t properly start on startup, LCD can be turned on using:
 
 ```python
-rosrun dingo_peripheral_interfacing dingo_lcd_interfacing.py
+rosrun robodog_peripheral_interfacing robodog_lcd_interfacing.py
 ```
 
-The LCD module is currently set to run at startup using ROS Upstart, and from the dingo.launch file.
+The LCD module is currently set to run at startup using ROS Upstart, and from the robodog.launch file.
 
 # Create a pull request on Github
 
 Include the Notion task link in your PR description. 
 
-# Launch Dingo control in simulation
+# Launch RoboDog control in simulation
 
 ```python
 source devel/setup.bash
-roslaunch dingo dingo.launch is_physical:=0 is_sim:=1 launch_sim_environment:=1
+roslaunch robodog robodog.launch is_physical:=0 is_sim:=1 launch_sim_environment:=1
 ```
 
 # View joint or task space objectives
 
-Make sure dingo.launch has been started first then:
+Make sure robodog.launch has been started first then:
 
 ```python
 source devel/setup.bash
@@ -81,11 +81,11 @@ The **HardwareInterface.py** code uses a matrix of offset angles to ensure the r
     This calibration can be run using:
     
     ```python
-    rosrun dingo_servo_interfacing CalibrateServos.py
+    rosrun robodog_servo_interfacing CalibrateServos.py
     ```
     
     1. At the bottom of the [**HardwareInterface.py](http://HardwareInterface.py)** code, there is a section that allows testing by sending all legs to the same set of 3 joint angles (defining hip, upper and lower leg servo angles for the leg. This is not the suggested method but can be good if only a single motor needs to be tweaked. This file can be run using:
     
     ```python
-    rosrun dingo_servo_interfacing HardwareInterface.py
+    rosrun robodog_servo_interfacing HardwareInterface.py
     ```

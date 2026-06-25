@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboDog Quadruped Servo Calibration</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --border-color: #334155;
+            --highlight-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            letter-spacing: -0.025em;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media(min-width: 768px) {
+            .container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .leg-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .leg-card.focused {
+            border-color: var(--highlight-color);
+        }
+
+        .leg-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .joint-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .joint-row:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .joint-row.active {
+            background-color: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--highlight-color);
+        }
+
+        .joint-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .joint-name {
+            font-weight: 500;
+        }
+
+        .joint-values {
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex-grow: 1;
+            accent-color: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .save-bar {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px 20px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        button {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .status-msg {
+            font-weight: 500;
+        }
+
+        .instructions {
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            max-width: 1200px;
+        }
+
+        .instructions code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .preset-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            box-sizing: border-box;
+        }
+
+        .preset-label {
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .preset-btn {
+            background-color: var(--border-color);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .preset-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>RoboDog Quadruped Servo Calibration</h1>
+        <p>Interactive calibration interface</p>
+    </header>
+
+    <div class="instructions">
+        <strong>Controls:</strong> Click any joint to select it. Adjust the value using the <strong>sliders</strong> or
+        the <strong>Left / Right Arrow keys</strong> (fine-tune by 1 degree). Move selection with <strong>Up / Down
+            Arrow keys</strong>. Press <strong>Enter</strong> or click "Save Calibration" to write updates directly to
+        the source code files.
+    </div>
+
+    <div class="preset-container">
+        <span class="preset-label">Stance Presets:</span>
+        <button class="preset-btn" onclick="setStance('cal')">Calibration (Cal)</button>
+        <button class="preset-btn" onclick="setStance('low')">Low</button>
+        <button class="preset-btn" onclick="setStance('mid')">Medium</button>
+        <button class="preset-btn" onclick="setStance('high')">High</button>
+
+        <span style="flex-grow: 1;"></span>
+
+        <button class="preset-btn" onclick="calibrateADC()" id="btn-calibrate-adc"
+            style="background-color: var(--highlight-color); border-color: var(--highlight-color); color: #000; margin-right: 20px;">Calibrate
+            ADCs</button>
+
+        <label
+            style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="soft-motion-checkbox" onchange="toggleSoftMotion(this.checked)"
+                style="width: 18px; height: 18px; cursor: pointer;">
+            Use Soft Motion
+        </label>
+        <label
+            style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; user-select: none; margin-left: 20px;">
+            <input type="checkbox" id="dither-checkbox" onchange="toggleDither(this.checked)"
+                style="width: 18px; height: 18px; cursor: pointer;">
+            Enable Motor Dither
+        </label>
+    </div>
+
+    <!-- Arduino Nano Config Panel -->
+    <div class="preset-container" style="flex-direction: column; align-items: stretch; gap: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="preset-label" style="font-size: 1.1rem; color: var(--highlight-color);">USB Arduino Nano
+                Interface</span>
+            <span id="serial-status" style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">Scanning
+                ports...</span>
+        </div>
+        <div
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <div
+                style="background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                <h4
+                    style="margin: 0 0 10px 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    x1 Left Nano (D3 / A0 Pot)</h4>
+                <div style="font-size: 2.2rem; font-weight: 700; font-family: monospace; margin-bottom: 10px;">
+                    <span id="nano1-adc" style="color: var(--accent-color);">0</span>
+                    <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">/ 1023 ADC</span>
+                </div>
+                <button onclick="wiggleNano('x1')" class="preset-btn"
+                    style="background-color: var(--accent-color); border-color: var(--accent-color); font-size: 0.85rem; padding: 6px 12px;">Wiggle
+                    D3 Motor</button>
+            </div>
+            <div
+                style="background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                <h4
+                    style="margin: 0 0 10px 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    x2 Right Nano (D3 / A0 Pot)</h4>
+                <div style="font-size: 2.2rem; font-weight: 700; font-family: monospace; margin-bottom: 10px;">
+                    <span id="nano2-adc" style="color: var(--accent-color);">0</span>
+                    <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">/ 1023 ADC</span>
+                </div>
+                <button onclick="wiggleNano('x2')" class="preset-btn"
+                    style="background-color: var(--accent-color); border-color: var(--accent-color); font-size: 0.85rem; padding: 6px 12px;">Wiggle
+                    D3 Motor</button>
+            </div>
+        </div>
+        <div
+            style="border-top: 1px solid var(--border-color); padding-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">x1 Left Nano (D3-D5)
+                    controls:</label>
+                <select id="map-n1d3" onchange="submitMapping()"
+                    style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; outline: none; font-size: 0.9rem;">
+                    <option value="0">Front-Right (FR)</option>
+                    <option value="1">Front-Left (FL)</option>
+                    <option value="2">Back-Right (BR)</option>
+                    <option value="3">Back-Left (BL)</option>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">x1 Left Nano (D6-D8)
+                    controls:</label>
+                <select id="map-n1d6" onchange="submitMapping()"
+                    style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; outline: none; font-size: 0.9rem;">
+                    <option value="0">Front-Right (FR)</option>
+                    <option value="1">Front-Left (FL)</option>
+                    <option value="2">Back-Right (BR)</option>
+                    <option value="3">Back-Left (BL)</option>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">x2 Right Nano (D3-D5)
+                    controls:</label>
+                <select id="map-n2d3" onchange="submitMapping()"
+                    style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; outline: none; font-size: 0.9rem;">
+                    <option value="0">Front-Right (FR)</option>
+                    <option value="1">Front-Left (FL)</option>
+                    <option value="2">Back-Right (BR)</option>
+                    <option value="3">Back-Left (BL)</option>
+                </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted);">x2 Right Nano (D6-D8)
+                    controls:</label>
+                <select id="map-n2d6" onchange="submitMapping()"
+                    style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px; cursor: pointer; outline: none; font-size: 0.9rem;">
+                    <option value="0">Front-Right (FR)</option>
+                    <option value="1">Front-Left (FL)</option>
+                    <option value="2">Back-Right (BR)</option>
+                    <option value="3">Back-Left (BL)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="legs-container">
+        <!-- Generated Dynamically -->
+    </div>
+
+    <div class="save-bar">
+        <span class="status-msg" id="status-text">Offsets loaded. Click "Save Calibration" to persist changes.</span>
+        <button id="save-btn" onclick="saveCalibration()">Save Calibration</button>
+    </div>
+
+    <script>
+        const legNames = ["Front-Right (FR)", "Front-Left (FL)", "Back-Right (BR)", "Back-Left (BL)"];
+        const jointNames = ["Hip", "Upper Leg", "Lower Leg"];
+        let offsets = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        let inversions = [[false, false, false, false], [false, false, false, false], [false, false, false, false]];
+        let controlPos = [[0, 0, 0, 0], [0, 0, 0, 0], [90, 90, 90, 90]];
+        let pins = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        let calibrationPos = [0, 0, 90];
+        let adcValues = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        let mapping = {};
+        let pendingRequests = {};
+        let selectedField = 'offset'; // 'offset' or 'control'
+
+        function getNanoPinName(legIdx, jointIdx) {
+            for (const key in mapping) {
+                if (mapping[key] === legIdx) {
+                    const parts = key.split(' ');
+                    const board = parts[0];
+                    const startPin = parts[1];
+                    const basePinNum = parseInt(startPin.replace('D', ''));
+                    const pinNum = basePinNum + jointIdx;
+                    return `${board} D${pinNum}`;
+                }
+            }
+            return `PCA Pin ${pins[jointIdx][legIdx]}`;
+        }
+
+        function getAdjustedAngle(legIdx, jointIdx, angle) {
+            // Check custom inversion state
+            let userInverted = false;
+            try {
+                userInverted = inversions[jointIdx][legIdx];
+            } catch (err) { }
+
+            if (userInverted) {
+                return 180 - angle;
+            }
+            return angle;
+        }
+
+        function getTargetAngle(jointIdx, offsetVal, controlVal) {
+            let base = 90;
+            if (jointIdx === 0) {
+                base = 90;
+            } else if (jointIdx === 1) {
+                base = 0;
+            } else if (jointIdx === 2) {
+                base = 90;
+            }
+            return base + offsetVal + controlVal;
+        }
+
+        let selectedLeg = 0; // 0..3
+        let selectedJoint = 0; // 0..2
+        let activeStance = 'cal';
+
+        async function fetchOffsets() {
+            try {
+                const response = await fetch('/get_offsets');
+                const data = await response.json();
+                offsets = data.offsets;
+                inversions = data.inversions || inversions;
+                controlPos = data.control_pos || controlPos;
+                calibrationPos = data.calibration_pos;
+                pins = data.pins || pins;
+                detectStance();
+                renderUI();
+
+                // Fetch soft motion state
+                const smRes = await fetch('/get_soft_motion');
+                const smData = await smRes.json();
+                document.getElementById('soft-motion-checkbox').checked = smData.use_soft_motion;
+
+                // Load localStorage dither settings
+                loadSettings();
+            } catch (err) {
+                console.error("Failed to load offsets", err);
+                document.getElementById('status-text').innerText = "Error loading offsets.";
+            }
+        }
+
+        async function updateStatusPoll() {
+            try {
+                const response = await fetch('/get_status');
+                const data = await response.json();
+
+                // Update Nano connection status
+                const conn = data.nano_status;
+                document.getElementById('serial-status').innerText =
+                    `Connected: ${conn.connected.join(', ') || 'None'} (Ports: ${conn.ports.join(', ')})`;
+
+                // Update D3 values
+                document.getElementById('nano1-adc').innerText = data.nano1_d3_adc;
+                document.getElementById('nano2-adc').innerText = data.nano2_d3_adc;
+
+                // Update mapping dropdowns if mapping values exist
+                if (conn.mapping) {
+                    mapping = conn.mapping;
+                    document.getElementById('map-n1d3').value = conn.mapping['x1 D3'] !== undefined ? conn.mapping['x1 D3'] : conn.mapping['Nano 1 D3'];
+                    document.getElementById('map-n1d6').value = conn.mapping['x1 D6'] !== undefined ? conn.mapping['x1 D6'] : conn.mapping['Nano 1 D6'];
+                    document.getElementById('map-n2d3').value = conn.mapping['x2 D3'] !== undefined ? conn.mapping['x2 D3'] : conn.mapping['Nano 2 D3'];
+                    document.getElementById('map-n2d6').value = conn.mapping['x2 D6'] !== undefined ? conn.mapping['x2 D6'] : conn.mapping['Nano 2 D6'];
+                }
+
+                // Save ADC values
+                adcValues = data.adc_grid;
+
+                // Update joint labels with current ADC values
+                for (let legIdx = 0; legIdx < 4; legIdx++) {
+                    const card = document.getElementById('legs-container').children[legIdx];
+                    if (card) {
+                        for (let jointIdx = 0; jointIdx < 3; jointIdx++) {
+                            const reqKey = `${legIdx}_${jointIdx}`;
+
+                            // Only update dynamic states if we are not actively dragging them
+                            if (!pendingRequests[reqKey]) {
+                                if (data.offsets) offsets[jointIdx][legIdx] = data.offsets[jointIdx][legIdx];
+                                if (data.inversions) inversions[jointIdx][legIdx] = data.inversions[jointIdx][legIdx];
+                                if (data.control_pos) controlPos[jointIdx][legIdx] = data.control_pos[jointIdx][legIdx];
+                            }
+
+                            const row = card.children[jointIdx + 1];
+                            if (row) {
+                                const valDisplay = row.querySelector('.joint-values');
+                                if (valDisplay) {
+                                    const offsetVal = offsets[jointIdx][legIdx];
+                                    const ctrlVal = controlPos[jointIdx][legIdx];
+                                    const totalVal = getTargetAngle(jointIdx, offsetVal, ctrlVal);
+                                    const hardwareVal = getAdjustedAngle(legIdx, jointIdx, totalVal);
+                                    const adcVal = adcValues[jointIdx][legIdx];
+                                    valDisplay.innerText = `Offset: ${offsetVal}°, SW: ${totalVal}°, HW: ${hardwareVal}° [ADC: ${adcVal}]`;
+                                }
+                                const nameDisplay = row.querySelector('.joint-name');
+                                if (nameDisplay) {
+                                    nameDisplay.innerText = `${jointNames[jointIdx]} (${getNanoPinName(legIdx, jointIdx)})`;
+                                }
+
+                                // Update elements if not focused
+                                const calibSlider = row.querySelector('.calib-slider');
+                                if (calibSlider && document.activeElement !== calibSlider) {
+                                    calibSlider.value = offsets[jointIdx][legIdx];
+                                    const calibVal = row.querySelector('.calib-val-display');
+                                    if (calibVal) calibVal.innerText = `${offsets[jointIdx][legIdx]}°`;
+                                }
+                                const controlSlider = row.querySelector('.control-slider');
+                                if (controlSlider && document.activeElement !== controlSlider) {
+                                    controlSlider.value = controlPos[jointIdx][legIdx];
+                                    const controlVal = row.querySelector('.control-val-display');
+                                    if (controlVal) controlVal.innerText = `${controlPos[jointIdx][legIdx]}°`;
+                                }
+                                const invertCheckbox = row.querySelector('.invert-checkbox');
+                                if (invertCheckbox && document.activeElement !== invertCheckbox) {
+                                    invertCheckbox.checked = inversions[jointIdx][legIdx];
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Status polling failed", err);
+            }
+        }
+
+        async function submitMapping() {
+            const mapping = {
+                'x1 D3': parseInt(document.getElementById('map-n1d3').value),
+                'x1 D6': parseInt(document.getElementById('map-n1d6').value),
+                'x2 D3': parseInt(document.getElementById('map-n2d3').value),
+                'x2 D6': parseInt(document.getElementById('map-n2d6').value)
+            };
+            try {
+                await fetch('/set_mapping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mapping: mapping })
+                });
+            } catch (err) {
+                console.error("Failed to submit mapping", err);
+            }
+        }
+
+        async function wiggleNano(nanoName) {
+            try {
+                await fetch('/wiggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nano_name: nanoName })
+                });
+            } catch (err) {
+                console.error("Failed to wiggle Nano D3", err);
+            }
+        }
+
+        function detectStance() {
+            if (calibrationPos[0] === 0 && calibrationPos[1] === 25 && calibrationPos[2] === 140) activeStance = 'low';
+            else if (calibrationPos[0] === 0 && calibrationPos[1] === 42 && calibrationPos[2] === 120) activeStance = 'mid';
+            else if (calibrationPos[0] === 0 && calibrationPos[1] === 50 && calibrationPos[2] === 110) activeStance = 'high';
+            else activeStance = 'cal';
+            updateActiveStanceUI();
+        }
+
+        function updateActiveStanceUI() {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                const isMatch = btn.getAttribute('onclick').includes(`'${activeStance}'`);
+                if (isMatch) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        async function setStance(stance) {
+            try {
+                const response = await fetch('/set_stance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stance: stance })
+                });
+                const data = await response.json();
+                if (data.status === "ok") {
+                    calibrationPos = data.calibration_pos;
+                    activeStance = stance;
+                    updateActiveStanceUI();
+                    renderUI();
+                }
+            } catch (err) {
+                console.error("Failed to set stance", err);
+            }
+        }
+
+        async function toggleSoftMotion(enabled) {
+            try {
+                await fetch('/set_soft_motion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ use_soft_motion: enabled })
+                });
+            } catch (err) {
+                console.error("Failed to toggle soft motion", err);
+            }
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('robodog_calibration_settings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    if (settings.motorDither !== undefined) {
+                        document.getElementById('dither-checkbox').checked = settings.motorDither;
+                        // Synchronize to python backend
+                        fetch('/set_dither', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ dither_enabled: settings.motorDither })
+                        }).catch(err => console.error("Failed to sync initial dither state", err));
+                    }
+                } catch (e) { console.error('Failed to load settings', e); }
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                motorDither: document.getElementById('dither-checkbox').checked
+            };
+            localStorage.setItem('robodog_calibration_settings', JSON.stringify(settings));
+        }
+
+        async function toggleDither(enabled) {
+            try {
+                await fetch('/set_dither', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dither_enabled: enabled })
+                });
+                saveSettings();
+            } catch (err) {
+                console.error("Failed to toggle dither", err);
+            }
+        }
+
+        async function calibrateADC() {
+            const btn = document.getElementById('btn-calibrate-adc');
+            btn.innerText = "Calibrating (Wait ~5s)...";
+            btn.disabled = true;
+            try {
+                const response = await fetch('/calibrate_adc', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.status === "ok") {
+                    btn.innerText = "Calibrate ADCs";
+                    alert("ADC Calibration completed successfully!");
+                } else {
+                    btn.innerText = "Calibration Failed";
+                    alert("Failed: " + data.status);
+                }
+            } catch (err) {
+                console.error("Failed to calibrate ADC", err);
+                btn.innerText = "Calibration Failed";
+            }
+            btn.disabled = false;
+        }
+
+        function updateActiveSelectionStyles(legIdx, jointIdx) {
+            selectedLeg = legIdx;
+            selectedJoint = jointIdx;
+
+            // Update leg cards
+            const container = document.getElementById('legs-container');
+            for (let l = 0; l < 4; l++) {
+                const card = container.children[l];
+                if (card) {
+                    if (l === legIdx) {
+                        card.classList.add('focused');
+                    } else {
+                        card.classList.remove('focused');
+                    }
+
+                    // Update joint rows
+                    for (let j = 0; j < 3; j++) {
+                        const row = card.children[j + 1];
+                        if (row) {
+                            if (l === legIdx && j === jointIdx) {
+                                row.classList.add('active');
+                            } else {
+                                row.classList.remove('active');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function renderUI() {
+            const container = document.getElementById('legs-container');
+            container.innerHTML = "";
+
+            for (let legIdx = 0; legIdx < 4; legIdx++) {
+                const card = document.createElement('div');
+                card.className = `leg-card ${legIdx === selectedLeg ? 'focused' : ''}`;
+
+                const title = document.createElement('div');
+                title.className = 'leg-title';
+                title.innerText = legNames[legIdx];
+                card.appendChild(title);
+
+                for (let jointIdx = 0; jointIdx < 3; jointIdx++) {
+                    const row = document.createElement('div');
+                    const isActive = legIdx === selectedLeg && jointIdx === selectedJoint;
+                    row.className = `joint-row ${isActive ? 'active' : ''}`;
+                    row.onclick = (e) => {
+                        // Prevent row selection if we click input elements
+                        if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') {
+                            return;
+                        }
+                        selectedLeg = legIdx;
+                        selectedJoint = jointIdx;
+                        renderUI();
+                    };
+
+                    const info = document.createElement('div');
+                    info.className = 'joint-info';
+
+                    const name = document.createElement('span');
+                    name.className = 'joint-name';
+                    name.innerText = `${jointNames[jointIdx]} (${getNanoPinName(legIdx, jointIdx)})`;
+
+                    const valDisplay = document.createElement('span');
+                    valDisplay.className = 'joint-values';
+                    const offsetVal = offsets[jointIdx][legIdx];
+                    const ctrlVal = controlPos[jointIdx][legIdx];
+                    const totalVal = getTargetAngle(jointIdx, offsetVal, ctrlVal);
+                    const hardwareVal = getAdjustedAngle(legIdx, jointIdx, totalVal);
+                    const adcVal = adcValues[jointIdx][legIdx];
+                    valDisplay.innerText = `Offset: ${offsetVal}°, SW: ${totalVal}°, HW: ${hardwareVal}° [ADC: ${adcVal}]`;
+
+                    info.appendChild(name);
+                    info.appendChild(valDisplay);
+                    row.appendChild(info);
+
+                    const sliderContainer = document.createElement('div');
+                    sliderContainer.className = 'slider-container';
+                    sliderContainer.style.display = 'flex';
+                    sliderContainer.style.flexDirection = 'column';
+                    sliderContainer.style.gap = '8px';
+                    sliderContainer.style.width = '100%';
+                    sliderContainer.style.marginTop = '8px';
+
+                    // Specific limits for Hip, Thigh, Calf
+                    let calibMin = 0, calibMax = 180;
+                    let controlMin = 0, controlMax = 180;
+                    if (jointIdx === 0) { // Hip
+                        calibMin = -65; calibMax = 65;
+                        controlMin = -25; controlMax = 25;
+                    } else if (jointIdx === 1) { // Thigh
+                        calibMin = 0; calibMax = 45;
+                        controlMin = 0; controlMax = 130;
+                    } else if (jointIdx === 2) { // Calf
+                        calibMin = -15; calibMax = 15;
+                        controlMin = -80; controlMax = 80;
+                    }
+
+                    // Calib (Offset) Slider Row
+                    const calibRow = document.createElement('div');
+                    calibRow.className = 'slider-row';
+                    calibRow.style.display = 'flex';
+                    calibRow.style.alignItems = 'center';
+                    calibRow.style.gap = '10px';
+                    calibRow.style.width = '100%';
+
+                    const calibLabel = document.createElement('span');
+                    calibLabel.innerText = 'Calib:';
+                    calibLabel.style.width = '55px';
+                    calibLabel.style.fontSize = '0.85rem';
+                    calibLabel.style.color = 'var(--text-muted)';
+
+                    const calibSlider = document.createElement('input');
+                    calibSlider.type = 'range';
+                    calibSlider.className = 'calib-slider';
+                    calibSlider.min = calibMin.toString();
+                    calibSlider.max = calibMax.toString();
+                    calibSlider.value = offsetVal;
+                    calibSlider.onfocus = () => {
+                        selectedField = 'offset';
+                        updateActiveSelectionStyles(legIdx, jointIdx);
+                    };
+                    calibSlider.oninput = (e) => {
+                        updateJoint(legIdx, jointIdx, 'offset', parseInt(e.target.value));
+                    };
+
+                    const calibVal = document.createElement('span');
+                    calibVal.className = 'calib-val-display';
+                    calibVal.innerText = `${offsetVal}°`;
+                    calibVal.style.width = '40px';
+                    calibVal.style.textAlign = 'right';
+                    calibVal.style.fontSize = '0.85rem';
+
+                    calibRow.appendChild(calibLabel);
+                    calibRow.appendChild(calibSlider);
+                    calibRow.appendChild(calibVal);
+                    sliderContainer.appendChild(calibRow);
+
+                    // Control Slider Row
+                    const controlRow = document.createElement('div');
+                    controlRow.className = 'slider-row';
+                    controlRow.style.display = 'flex';
+                    controlRow.style.alignItems = 'center';
+                    controlRow.style.gap = '10px';
+                    controlRow.style.width = '100%';
+
+                    const controlLabel = document.createElement('span');
+                    controlLabel.innerText = 'Control:';
+                    controlLabel.style.width = '55px';
+                    controlLabel.style.fontSize = '0.85rem';
+                    controlLabel.style.color = 'var(--text-muted)';
+
+                    const controlSlider = document.createElement('input');
+                    controlSlider.type = 'range';
+                    controlSlider.className = 'control-slider';
+                    controlSlider.min = controlMin.toString();
+                    controlSlider.max = controlMax.toString();
+                    controlSlider.value = ctrlVal;
+                    controlSlider.onfocus = () => {
+                        selectedField = 'control';
+                        updateActiveSelectionStyles(legIdx, jointIdx);
+                    };
+                    controlSlider.oninput = (e) => {
+                        updateJoint(legIdx, jointIdx, 'control', parseInt(e.target.value));
+                    };
+
+                    const controlVal = document.createElement('span');
+                    controlVal.className = 'control-val-display';
+                    controlVal.innerText = `${ctrlVal}°`;
+                    controlVal.style.width = '40px';
+                    controlVal.style.textAlign = 'right';
+                    controlVal.style.fontSize = '0.85rem';
+
+                    controlRow.appendChild(controlLabel);
+                    controlRow.appendChild(controlSlider);
+                    controlRow.appendChild(controlVal);
+                    sliderContainer.appendChild(controlRow);
+
+                    // Inversion Row
+                    const invertRow = document.createElement('div');
+                    invertRow.style.display = 'flex';
+                    invertRow.style.alignItems = 'center';
+                    invertRow.style.gap = '8px';
+                    invertRow.style.marginTop = '4px';
+
+                    const invertCheckbox = document.createElement('input');
+                    invertCheckbox.type = 'checkbox';
+                    invertCheckbox.className = 'invert-checkbox';
+                    invertCheckbox.checked = inversions[jointIdx][legIdx];
+                    invertCheckbox.onchange = (e) => {
+                        updateJoint(legIdx, jointIdx, 'inversion', e.target.checked);
+                    };
+
+                    const invertLabel = document.createElement('label');
+                    invertLabel.innerText = 'Invert motor direction';
+                    invertLabel.style.fontSize = '0.85rem';
+                    invertLabel.style.color = 'var(--text-muted)';
+                    invertLabel.style.cursor = 'pointer';
+
+                    invertRow.appendChild(invertCheckbox);
+                    invertRow.appendChild(invertLabel);
+                    sliderContainer.appendChild(invertRow);
+
+                    row.appendChild(sliderContainer);
+                    card.appendChild(row);
+                }
+                container.appendChild(card);
+            }
+        }
+
+        async function updateJoint(legIdx, jointIdx, field, val) {
+            if (field === 'offset') {
+                offsets[jointIdx][legIdx] = val;
+            } else if (field === 'control') {
+                controlPos[jointIdx][legIdx] = val;
+            } else if (field === 'inversion') {
+                inversions[jointIdx][legIdx] = val;
+            }
+
+            // Re-render only labels/inputs to prevent slider stuttering
+            const card = document.getElementById('legs-container').children[legIdx];
+            const row = card.children[jointIdx + 1];
+
+            const offsetVal = offsets[jointIdx][legIdx];
+            const ctrlVal = controlPos[jointIdx][legIdx];
+            const totalVal = getTargetAngle(jointIdx, offsetVal, ctrlVal);
+            const hardwareVal = getAdjustedAngle(legIdx, jointIdx, totalVal);
+            const adcVal = adcValues[jointIdx][legIdx];
+
+            const valDisplay = row.querySelector('.joint-values');
+            if (valDisplay) {
+                valDisplay.innerText = `Offset: ${offsetVal}°, SW: ${totalVal}°, HW: ${hardwareVal}° [ADC: ${adcVal}]`;
+            }
+
+            const calibVal = row.querySelector('.calib-val-display');
+            if (calibVal) {
+                calibVal.innerText = `${offsetVal}°`;
+            }
+            const calibSlider = row.querySelector('.calib-slider');
+            if (calibSlider && document.activeElement !== calibSlider) {
+                calibSlider.value = offsetVal;
+            }
+
+            const controlVal = row.querySelector('.control-val-display');
+            if (controlVal) {
+                controlVal.innerText = `${ctrlVal}°`;
+            }
+            const controlSlider = row.querySelector('.control-slider');
+            if (controlSlider && document.activeElement !== controlSlider) {
+                controlSlider.value = ctrlVal;
+            }
+
+            const invertCheckbox = row.querySelector('.invert-checkbox');
+            if (invertCheckbox) {
+                invertCheckbox.checked = inversions[jointIdx][legIdx];
+            }
+
+            const reqKey = `${legIdx}_${jointIdx}`;
+            if (!pendingRequests[reqKey]) {
+                pendingRequests[reqKey] = {
+                    offset: offsetVal,
+                    control: ctrlVal,
+                    inversion: inversions[jointIdx][legIdx],
+                    dirty: false
+                };
+            } else {
+                pendingRequests[reqKey].offset = offsetVal;
+                pendingRequests[reqKey].control = ctrlVal;
+                pendingRequests[reqKey].inversion = inversions[jointIdx][legIdx];
+                pendingRequests[reqKey].dirty = true;
+                return;
+            }
+
+            while (true) {
+                const sendOffset = pendingRequests[reqKey].offset;
+                const sendControl = pendingRequests[reqKey].control;
+                const sendInversion = pendingRequests[reqKey].inversion;
+                pendingRequests[reqKey].dirty = false;
+
+                try {
+                    await fetch('/update_joint', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            leg_idx: legIdx,
+                            joint_idx: jointIdx,
+                            offset: sendOffset,
+                            control: sendControl,
+                            inversion: sendInversion
+                        })
+                    });
+                } catch (err) {
+                    console.error("Failed to update joint", err);
+                }
+
+                if (!pendingRequests[reqKey].dirty) {
+                    break;
+                }
+            }
+
+            delete pendingRequests[reqKey];
+        }
+
+        async function saveCalibration() {
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = "Saving offsets...";
+            try {
+                const response = await fetch('/save_offsets', { method: 'POST' });
+                const data = await response.json();
+                if (data.status === "saved") {
+                    statusText.innerText = "Successfully saved calibration offsets to source files!";
+                    statusText.style.color = "var(--success-color)";
+                    setTimeout(() => {
+                        statusText.innerText = "Offsets loaded. Click \"Save Calibration\" to persist changes.";
+                        statusText.style.color = "";
+                    }, 4000);
+                } else {
+                    statusText.innerText = "Save failed: " + data.status;
+                }
+            } catch (err) {
+                statusText.innerText = "Failed to save calibration.";
+                console.error(err);
+            }
+        }
+
+        // Keyboard navigation
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedJoint--;
+                if (selectedJoint < 0) {
+                    selectedJoint = 2;
+                    selectedLeg = (selectedLeg - 1 + 4) % 4;
+                }
+                renderUI();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedJoint++;
+                if (selectedJoint > 2) {
+                    selectedJoint = 0;
+                    selectedLeg = (selectedLeg + 1) % 4;
+                }
+                renderUI();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (selectedField === 'offset') {
+                    let currentVal = offsets[selectedJoint][selectedLeg];
+                    let minVal = selectedJoint === 0 ? -65 : (selectedJoint === 1 ? 0 : -15);
+                    if (currentVal > minVal) {
+                        updateJoint(selectedLeg, selectedJoint, 'offset', currentVal - 1);
+                        renderUI();
+                    }
+                } else {
+                    let currentVal = controlPos[selectedJoint][selectedLeg];
+                    let minVal = selectedJoint === 0 ? -25 : (selectedJoint === 1 ? 0 : -80);
+                    if (currentVal > minVal) {
+                        updateJoint(selectedLeg, selectedJoint, 'control', currentVal - 1);
+                        renderUI();
+                    }
+                }
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                if (selectedField === 'offset') {
+                    let currentVal = offsets[selectedJoint][selectedLeg];
+                    let maxVal = selectedJoint === 0 ? 65 : (selectedJoint === 1 ? 45 : 15);
+                    if (currentVal < maxVal) {
+                        updateJoint(selectedLeg, selectedJoint, 'offset', currentVal + 1);
+                        renderUI();
+                    }
+                } else {
+                    let currentVal = controlPos[selectedJoint][selectedLeg];
+                    let maxVal = selectedJoint === 0 ? 25 : (selectedJoint === 1 ? 130 : 80);
+                    if (currentVal < maxVal) {
+                        updateJoint(selectedLeg, selectedJoint, 'control', currentVal + 1);
+                        renderUI();
+                    }
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                saveCalibration();
+            }
+        });
+
+        // Initial Load & polling
+        fetchOffsets();
+        setInterval(updateStatusPoll, 100);
+    </script>
+</body>
+
+</html>

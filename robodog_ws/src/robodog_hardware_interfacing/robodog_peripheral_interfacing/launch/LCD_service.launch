@@ -1,0 +1,3 @@
+<launch>
+    <node pkg = "robodog_lcd_interfacing" type = "robodog_lcd_interfacing.py" name = "robodog_LCD_node" output="screen"></node>
+</launch>
